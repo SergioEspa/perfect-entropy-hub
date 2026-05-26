@@ -1,4 +1,5 @@
 import { CONFIG } from "./config.js"; 
+import { createEvent } from "./service.js";
 
 const API_BASE = `${CONFIG.API_URL}/api/calendar`;
 
@@ -223,7 +224,7 @@ export function initializeCalendar() {
     document.getElementById('draft-end-time').addEventListener('change', updateEventTimeFromInputs);
 
     // --- ACCIONES PRINCIPALES ---
-    document.getElementById('btn-save-draft').addEventListener('click', () => {
+    document.getElementById('btn-save-draft').addEventListener('click', async () => {
         const draftEvent = calendar.getEventById('draft-event');
         if (!draftEvent) return;
 
@@ -244,7 +245,7 @@ export function initializeCalendar() {
             periodicity: document.getElementById('draft-periodicity').value // Añadido al payload
         };
 
-        
+        await createEvent(payload);
 
         draftModal.hide();
         draftEvent.remove(); 

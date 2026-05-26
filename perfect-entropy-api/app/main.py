@@ -1,47 +1,50 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from sqlalchemy.ext.asyncio import AsyncSession
 
+# Importaciones locales
 from .dependencies import get_current_member
-from .database import engine, Base
-# 🚨 IMPORTANTE: Importamos models para que SQLAlchemy registre las tablas en Base.metadata
-from . import models 
+from .database import engine, Base, get_db # Asegúrate de tener get_db en database.py
+from . import models, schemas
 
-# Lifespan: Código que se ejecuta al arrancar y apagar el servidor
+# Lifespan: Código que se ejecuta al arrancar
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Al haber importado 'models' arriba, Base.metadata ya tiene las tablas listas para crearse
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
 
-app = FastAPI(
-    title="Perfect Entropy API",
-    description="Backend hub para la gestión interna de la banda",
-    version="1.0.0",
-    lifespan=lifespan
-)
+app = FastAPI(title="Perfect Entropy API", version="1.0.0", lifespan=lifespan)
 
-# Configuración estricta de CORS
-origins = [
-    "http://localhost",
-    "http://localhost:5500",  # Live Server de VSCode
-    "http://127.0.0.1:5500",
-]
-
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"], # Para desarrollo es más cómodo
     allow_credentials=True,
-    allow_methods=["*"],  # Permite GET, POST, PUT, DELETE...
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Rutas de estado y autenticación originales
+# Endpoint Health
 @app.get("/api/health")
 async def health_check():
-    return {"status": "online", "message": "El laboratorio está abierto."}
+    return {"status": "online"}
 
+# Endpoint Auth
 @app.get("/api/auth/verify")
-async def verify_auth(current_member: dict = Depends(get_current_member)):
-    return {"authenticated": True, "member": current_member}
+async def verify_auth(current_member_id: int = Depends(get_current_member)):
+    return {"authenticated": True, "member_id": current_member_id}
+
+@app.post("/api/events/create", response_model=schemas.EventOut)
+async def create_event(
+    event_data: schemas.EventCreate,
+    current_member_id: int = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db)
+):
+    new_event = models.Event(
+        **event_data.model_dump(), 
+        owner_id=current_member_id
+    )
+    new_event.create(db, current_member_id, new_event)
+    return new_event

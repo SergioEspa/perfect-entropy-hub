@@ -134,6 +134,8 @@ class EventBase(BaseModel):
     type: EventType
     status: Optional[EventStatus] = EventStatus.CONFIRMADO
     periodicity: Periodicity = Periodicity.SINGLE
+    color: Optional[str] = "#3788d8"
+    description: Optional[str] = None
 
 class EventCreate(EventBase):
     pass

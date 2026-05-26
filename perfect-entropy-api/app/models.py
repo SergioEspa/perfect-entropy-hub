@@ -1,22 +1,8 @@
-import enum
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum, Boolean, Text
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, Text
 from sqlalchemy.orm import relationship, declarative_mixin
 from sqlalchemy.sql import func
 from .schemas import EventStatus, EventType
 from .database import Base
-
-# ==========================================
-# 0. USUARIOS (La Banda)
-# ==========================================
-class User(Base):
-    __tablename__ = "users"
-
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    role = Column(String, nullable=False) # Ej: Voz, Guitarra, Teclado...
-    
-    # Podrías añadir campos futuros como 'avatar_url' o 'phone' aquí
-    date_creation = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
 # ==========================================
 # MIXINS (Auditoría Global)
@@ -27,15 +13,40 @@ class AuditMixin:
     date_creation = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     last_modified = Column(DateTime(timezone=True), onupdate=func.now())
     flag_disabled = Column(Boolean, default=False, nullable=False)
-    
-    # 🚨 NUEVO: Ahora toda tabla que herede esto, exigirá saber quién lo creó
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    
+    def create(self, session, creator_id, obj):
+        """Método de conveniencia para crear un nuevo registro con auditoría"""
+        obj.created_by = creator_id
+        session.add(obj)
+        session.commit()
+        session.refresh(obj)
+        return obj
+    
+    def disable(self, session):
+        """Marca el registro como deshabilitado sin borrarlo"""
+        self.flag_disabled = True
+        session.commit()
+        
+    def enable(self, session):
+        """Rehabilita un registro previamente deshabilitado"""
+        self.flag_disabled = False
+        session.commit()
 
+# ==========================================
+# 0. USUARIOS (La Banda)
+# ==========================================
+class User(AuditMixin, Base):
+    __tablename__ = "users"
 
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    role = Column(String, nullable=False)
+    
 # ==========================================
 # 1. AGENDA / CALENDARIO
 # ==========================================
-class Event(Base):
+class Event(AuditMixin, Base):
     __tablename__ = "events"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -53,7 +64,7 @@ class Event(Base):
     
     votes = relationship("EventVote", back_populates="event", cascade="all, delete-orphan")
 
-class EventVote(Base):
+class EventVote(AuditMixin, Base):
     __tablename__ = "event_votes"
 
     id = Column(Integer, primary_key=True)
