@@ -45,8 +45,8 @@ class Event(Base):
     color = Column(String, default="#3788d8")
     description = Column(Text)
     periodicity = Column(String)
-    type = Column(Enum(EventType), nullable=False)
-    status = Column(Enum(EventStatus), default=EventStatus.CONFIRMADO)
+    type = Column(String, nullable=False)
+    status = Column(String, default=EventStatus.CONFIRMADO)
     
     # 🚨 Restaurada la clave foránea
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False) 

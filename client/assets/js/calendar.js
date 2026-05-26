@@ -39,8 +39,8 @@ export function initializeCalendar() {
             btnNuevoEvento: {
                 text: '+ Proponer',
                 click: function() {
-                    calendar.setOption('selectable', true);
                     isProposingMode = !isProposingMode; // Alternar estado on/off
+                    calendar.setOption('selectable', isProposingMode); // Solo permitir selección en modo propuesta
                     const btn = document.querySelector('.fc-btnNuevoEvento-button');
 
                     if (isProposingMode) {
@@ -244,7 +244,7 @@ export function initializeCalendar() {
             periodicity: document.getElementById('draft-periodicity').value // Añadido al payload
         };
 
-        console.log("🔥 PROPUESTA CAPTURADA LISTA PARA EL FETCH:", payload);
+        
 
         draftModal.hide();
         draftEvent.remove(); 
