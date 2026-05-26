@@ -1,0 +1,296 @@
+/* --- VARIABLES DE DISEÑO --- */
+:root {
+    --bg-main: #0b0b0c;
+    --bg-sidebar: #121214;
+    --bg-card: #1a1a1e;
+    --border-color: #26262b;
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+    --accent: #06b6d4;          /* Cian eléctrico */
+    --accent-hover: #0891b2;
+    --sidebar-width-collapsed: 78px;
+    --sidebar-width-expanded: 240px;
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- ESTILOS GENERALES --- */
+body {
+    background-color: var(--bg-main) !important;
+    color: var(--text-primary) !important;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overflow-x: hidden;
+}
+
+/* --- SIDEBAR DINÁMICA --- */
+#sidebar-container {
+    width: var(--sidebar-width-collapsed);
+    background-color: var(--bg-sidebar);
+    border-right: 1px solid var(--border-color);
+    transition: var(--transition-smooth);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+}
+
+#sidebar-container.expanded {
+    width: var(--sidebar-width-expanded);
+}
+
+/* Enlaces de la navegación */
+.nav-link {
+    color: var(--text-secondary);
+    border-radius: 12px;
+    margin: 4px 8px;
+    padding: 12px;
+    transition: var(--transition-smooth);
+    position: relative;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.nav-link:hover {
+    color: var(--text-primary);
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+.nav-link.active {
+    color: var(--accent) !important;
+    background-color: rgba(6, 182, 212, 0.08) !important;
+    font-weight: 600;
+}
+
+/* El texto de la sidebar maneja su propia opacidad para la transición */
+.nav-text {
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: var(--transition-smooth);
+    display: inline-block;
+}
+
+#sidebar-container.expanded .nav-text {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* --- CONTENEDOR PRINCIPAL Y ANIMACIÓN DE INYECCIÓN --- */
+#main-content {
+    background-color: var(--bg-main);
+    transition: var(--transition-smooth);
+}
+
+header {
+    background-color: var(--bg-main);
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Clase de animación para cuando el contenido se inyecta */
+.page-fade-in {
+    animation: fadeInPage 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes fadeInPage {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- TARJETAS Y COMPONENTES (UI Moderna) --- */
+.card {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 16px !important;
+    transition: var(--transition-smooth);
+}
+
+.card:hover {
+    border-color: rgba(6, 182, 212, 0.3) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 20px -10px rgba(0, 0, 0, 0.5);
+}
+
+.card-header {
+    background-color: transparent !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Scrollbars elegantes */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-main);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+/* ==========================================================================
+   OFFICIAL OVERRIDES: FULLCALENDAR (DARK MODE PREMIUM)
+   ========================================================================== */
+.fc {
+    --fc-border-color: var(--border-color);
+    --fc-page-bg-color: var(--bg-card);
+}
+
+.fc .fc-toolbar-title {
+    font-family: var(--font-monospace, monospace);
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* Botones de navegación */
+.fc .fc-button-primary {
+    background-color: var(--bg-sidebar);
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+    transition: var(--transition-smooth);
+}
+
+.fc .fc-button-primary:hover {
+    background-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.fc .fc-button-active {
+    background-color: rgba(6, 182, 212, 0.1) !important;
+    border-right: 1px solid var(--accent) !important;
+    border-color: var(--accent) !important;
+    color: var(--accent) !important;
+}
+
+/* Fondo de la cabecera de los días */
+.fc-theme-bootstrap5 th {
+    background-color: var(--bg-sidebar) !important;
+    padding: 12px 0;
+}
+
+/* 1. MUERTE AL AZUL HIPERVÍNCULO */
+.fc .fc-col-header-cell-cushion {
+    color: var(--text-primary) !important;
+    text-decoration: none !important;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: var(--transition-smooth);
+}
+
+.fc .fc-col-header-cell-cushion:hover {
+    color: var(--accent) !important;
+}
+
+/* 2. RESURRECCIÓN DEL EJE DE HORAS */
+.fc .fc-timegrid-slot-label-cushion,
+.fc .fc-timegrid-axis-cushion {
+    color: var(--text-primary) !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    opacity: 0.95;
+}
+
+/* Estructura del grid */
+.fc-timegrid-slot {
+    height: 3.5em !important;
+    border-bottom: 1px solid #1f1f23 !important;
+}
+
+/* Estilo de las cajas de los eventos */
+.fc-v-event {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    border-radius: 6px !important;
+    padding: 3px 6px;
+    border-width: 1px !important;
+}
+
+/* 3. NÚMEROS DE DÍA EN LA VISTA MENSUAL (DAYGRID) */
+.fc .fc-daygrid-day-number {
+    color: var(--text-primary) !important;
+    text-decoration: none !important;
+    font-weight: 500;
+    padding: 8px 10px !important; /* Más espacio táctil/visual */
+    transition: var(--transition-smooth);
+}
+
+.fc .fc-daygrid-day-number:hover {
+    color: var(--accent) !important;
+    text-decoration: none !important;
+    background-color: rgba(6, 182, 212, 0.05);
+    border-radius: 4px;
+}
+
+/* Destacar el botón personalizado de Nuevo Evento */
+.fc .fc-btnNuevoEvento-button {
+    background-color: rgba(6, 182, 212, 0.15) !important;
+    border-color: var(--accent) !important;
+    color: var(--accent) !important;
+    font-weight: 600;
+    margin-left: 1rem !important; /* Separarlo un poco del botón "Hoy" */
+}
+
+.fc .fc-btnNuevoEvento-button:hover {
+    background-color: var(--accent) !important;
+    color: var(--bg-main) !important;
+}
+
+/* Lógica visual para la selección de miembro en el Login */
+.member-select {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px; /* Un poco más curvo para que parezcan teclas o pads */
+    color: var(--text-secondary);
+}
+
+.member-select:hover {
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+input[type="radio"]:checked + .member-select {
+    background-color: rgba(6, 182, 212, 0.12) !important;
+    border-color: var(--accent) !important;
+    color: var(--accent) !important;
+    transform: translateY(-2px); /* Pequeño efecto de flotación al hacer click */
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2);
+}
+
+/* Fuerza el cursor especial en todo el calendario */
+.proposing-mode,
+.proposing-mode .fc-timegrid-slot,
+.proposing-mode .fc-view {
+    cursor: crosshair !important;
+}
+
+/* Efecto de resplandor para diferenciar el borrador */
+.draft-event-pulse {
+    animation: pulseDraft 2s infinite;
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.6);
+}
+
+@keyframes pulseDraft {
+    0% { opacity: 0.8; }
+    50% { opacity: 1; }
+    100% { opacity: 0.8; }
+}
+
+/* Invierte el color del reloj nativo para que se vea en el dark mode */
+input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}

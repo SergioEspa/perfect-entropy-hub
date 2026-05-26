@@ -1,0 +1,83 @@
+<div class="container-fluid h-100">
+    <div class="card p-3 shadow-lg h-100">
+        <div id="calendar-root"></div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalDraftEvent" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-secondary text-light">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title font-monospace fw-bold text-info">
+                    <i class="bi bi-calendar2-week px-2"></i>Crear Propuesta
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="draft-form">
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-secondary mb-1">TÍTULO DEL EVENTO</label>
+                        <input type="text" id="draft-title" class="form-control bg-dark text-light border-secondary" placeholder="Ej. Ensayo general..." required>
+                    </div>
+                    
+                    <div class="row mb-4 g-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-secondary mb-1">INICIO</label>
+                            <div class="input-group shadow-sm">
+                                <span class="input-group-text bg-dark text-secondary border-secondary"><i class="bi bi-clock"></i></span>
+                                <input type="time" id="draft-start-time" class="form-control bg-dark text-light border-secondary border-start-0" required>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-secondary mb-1">FIN</label>
+                            <div class="input-group shadow-sm">
+                                <span class="input-group-text bg-dark text-secondary border-secondary"><i class="bi bi-clock-fill"></i></span>
+                                <input type="time" id="draft-end-time" class="form-control bg-dark text-light border-secondary border-start-0" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4 g-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-secondary mb-1">TIPO</label>
+                            <select id="draft-type" class="form-select bg-dark text-light border-secondary shadow-sm">
+                                <option value="ENSAYO">Ensayo</option>
+                                <option value="CONCIERTO">Concierto</option>
+                                <option value="REUNION">Reunión</option>
+                                <option value="GRABACION">Grabación</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-secondary mb-1">COLOR</label>
+                            <input type="color" id="draft-color" class="form-control form-control-color w-100 bg-dark border-secondary shadow-sm" value="#8b5cf6" title="Personaliza el color de la etiqueta">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-secondary mb-1">AÑADIR PERIODICIDAD</label>
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text bg-dark text-secondary border-secondary"><i class="bi bi-arrow-repeat"></i></span>
+                            <select id="draft-periodicity" class="form-select bg-dark text-light border-secondary border-start-0">
+                                <option value="SINGLE">Evento único</option>
+                                <option value="WEEKLY">Semanal</option>
+                                <option value="MONTHLY">Mensual</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold text-secondary mb-1">DESCRIPCIÓN / NOTAS</label>
+                        <textarea id="draft-desc" class="form-control bg-dark text-light border-secondary shadow-sm" rows="3" placeholder="Añade enlaces o notas para la banda..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-danger me-auto" id="btn-delete-draft">Descartar</button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Dejar en el grid</button>
+                <button type="button" class="btn btn-info fw-bold" id="btn-save-draft">
+                    Guardar <i class="bi bi-check2 ms-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

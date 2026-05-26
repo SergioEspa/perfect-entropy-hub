@@ -1,0 +1,57 @@
+<div class="d-flex flex-column justify-content-center align-items-center h-100 animate-fade-in" style="min-height: 80vh;">
+    <div class="text-center mb-5">
+        <i class="bi bi-hexagon-half text-info mb-3" style="font-size: 3.5rem;"></i>
+        <h1 class="fw-bold font-monospace tracking-wide mb-2">PERFECT ENTROPY</h1>
+        <p class="text-secondary">Identificación requerida para el acceso al hub.</p>
+    </div>
+
+    <div class="card p-4 shadow-lg border-secondary" style="max-width: 480px; width: 100%;">
+        <form id="login-form">
+            <label class="form-label text-secondary small fw-bold mb-3">SELECCIONA TU IDENTIDAD</label>
+            
+            <div class="d-flex justify-content-between gap-2 mb-4">
+                
+                <input type="radio" name="memberId" id="m1" value="1" data-name="Cosmin" class="d-none" required>
+                <label for="m1" class="btn btn-outline-secondary flex-grow-1 member-select text-center py-3 px-1">
+                    <i class="fa-solid fa-microphone-lines fs-4 d-block mb-2"></i>
+                    <span class="small fw-bold" style="font-size: 0.75rem; letter-spacing: 1px;">COSMIN</span>
+                </label>
+
+                <input type="radio" name="memberId" id="m2" value="2" data-name="Adri" class="d-none">
+                <label for="m2" class="btn btn-outline-secondary flex-grow-1 member-select text-center py-3 px-1">
+                    <i class="fa-solid fa-guitar fs-4 d-block mb-2"></i>
+                    <span class="small fw-bold" style="font-size: 0.75rem; letter-spacing: 1px;">ADRI</span>
+                </label>
+
+                <input type="radio" name="memberId" id="m3" value="3" data-name="TSG" class="d-none">
+                <label for="m3" class="btn btn-outline-secondary flex-grow-1 member-select text-center py-3 px-1">
+                    <i class="fa-solid fa-bolt fs-4 d-block mb-2"></i>
+                    <span class="small fw-bold" style="font-size: 0.75rem; letter-spacing: 1px;">TSG</span>
+                </label>
+
+                <input type="radio" name="memberId" id="m4" value="4" data-name="SERGIO" class="d-none">
+                <label for="m4" class="btn btn-outline-secondary flex-grow-1 member-select text-center py-3 px-1">
+                    <i class="fa-solid fa-wave-square fs-4 d-block mb-2"></i>
+                    <span class="small fw-bold" style="font-size: 0.75rem; letter-spacing: 1px;">SERGIO</span>
+                </label>
+
+                <input type="radio" name="memberId" id="m5" value="5" data-name="ALEX" class="d-none">
+                <label for="m5" class="btn btn-outline-secondary flex-grow-1 member-select text-center py-3 px-1">
+                    <i class="fa-solid fa-drum fs-4 d-block mb-2"></i>
+                    <span class="small fw-bold" style="font-size: 0.75rem; letter-spacing: 1px;">ALEX</span>
+                </label>
+                
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label text-secondary small fw-bold">CONTRASEÑA</label>
+                <input type="password" id="band-password" class="form-control bg-dark text-light border-secondary" placeholder="••••••••" required>
+                <div id="login-error" class="text-danger small mt-2 d-none">Contraseña o identidad incorrecta.</div>
+            </div>
+
+            <button type="submit" class="btn btn-info w-100 fw-bold p-2" id="btn-login">
+                ACCEDER <i class="bi bi-arrow-right ms-2"></i>
+            </button>
+        </form>
+    </div>
+</div>
