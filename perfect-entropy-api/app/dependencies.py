@@ -1,33 +1,32 @@
 import os
-from fastapi import Header, HTTPException, Depends
+import jwt
+from fastapi import Header, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
 
-from .database import get_db # Asegúrate de tener esta función en tu database.py
-from .models import User
-
-GLOBAL_PASS = os.getenv("BAND_PASSWORD")
+# La clave con la que firmaremos. En producción debe ser un secreto real.
+JWT_SECRET = os.getenv("JWT_SECRET")
+JWT_ALGORITHM = "HS256"
 
 async def get_current_member(
-    x_member_id: str = Header(None),
-    x_band_pass: str = Header(None),
-    db: AsyncSession = Depends(get_db)  # Inyectamos la conexión a la base de datos
+    authorization: str = Header(None)
 ):
     """
-    Exige la contraseña global. Si es correcta, busca al usuario en la BBDD.
+    Intercepta el header 'Authorization: Bearer <token>', lo descifra
+    y devuelve el ID del miembro. Cero consultas a la base de datos.
     """
-    if not x_band_pass or x_band_pass != GLOBAL_PASS:
-        raise HTTPException(status_code=401, detail="Contraseña maestra incorrecta.")
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Falta el token de acceso en la cabecera.")
     
-    if not x_member_id:
-        raise HTTPException(status_code=401, detail="Identidad no proporcionada en la puerta.")
+    # Extraemos solo la parte del token
+    token = authorization.split(" ")[1] 
     
-    # Buscamos al usuario en la tabla 'users'
-    result = await db.execute(select(User).where(User.id == int(x_member_id)))
-    user = result.scalars().first()
-    
-    if not user:
-        raise HTTPException(status_code=403, detail="Identidad no reconocida en la banda.")
-    
-    # Devolvemos el ID del usuario (o el objeto entero 'user' si prefieres tener todos sus datos)
-    return user.id
+    try:
+        # Si la firma no coincide o el token caducó, esto lanzará una excepción
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        member_id = int(payload.get("sub"))
+        return member_id
+        
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="El token ha caducado. Vuelve a iniciar sesión.")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Token inválido o manipulado.")

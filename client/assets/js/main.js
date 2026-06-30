@@ -4,12 +4,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 function checkAuthAndLoad() {
     const memberId = localStorage.getItem('pe_member_id');
-    const bandPass = localStorage.getItem('pe_band_pass');
+    const bandToken = localStorage.getItem('pe_hub_token');
 
     const sidebar = document.getElementById('sidebar-container');
     const header = document.querySelector('header');
 
-    if (!memberId || !bandPass) {
+    if (!memberId || !bandToken) {
         // Bloquear UI principal
         sidebar.classList.add('d-none');
         header.classList.add('d-none');
@@ -53,6 +53,8 @@ async function loadPage(pageName, title) {
         }
         else if (pageName === 'music.html') {
             document.getElementById('page-title').innerHTML = `<i class="bi bi-music-note-beamed me-2 text-info"></i> Nuestra música`;
+            const { initializeMusic } = await import('./music.js');
+            initializeMusic();
         }
         else if (pageName === 'social.html') {
             document.getElementById('page-title').innerHTML = `<i class="bi bi-people-fill me-2 text-info"></i> Redes Sociales`;

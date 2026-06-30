@@ -15,23 +15,24 @@ class AuditMixin:
     flag_disabled = Column(Boolean, default=False, nullable=False)
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     
-    def create(self, session, creator_id, obj):
+    async def create(self, session, creator_id):
         """Método de conveniencia para crear un nuevo registro con auditoría"""
-        obj.created_by = creator_id
-        session.add(obj)
-        session.commit()
-        session.refresh(obj)
-        return obj
+        self.created_by = creator_id
+        session.add(self)
+        await session.commit()
+        await session.refresh(self)
+        return self
     
-    def disable(self, session):
+    async def disable(self, session):
         """Marca el registro como deshabilitado sin borrarlo"""
         self.flag_disabled = True
-        session.commit()
+        await session.commit()
+        await session.refresh(self)
         
-    def enable(self, session):
+    async def enable(self, session):
         """Rehabilita un registro previamente deshabilitado"""
         self.flag_disabled = False
-        session.commit()
+        await session.commit()
 
 # ==========================================
 # 0. USUARIOS (La Banda)
@@ -51,8 +52,8 @@ class Event(AuditMixin, Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
-    start_time = Column(DateTime, nullable=False)
-    end_time = Column(DateTime, nullable=False)
+    start_time = Column(DateTime(timezone=True), nullable=False)
+    end_time = Column(DateTime(timezone=True), nullable=False)
     color = Column(String, default="#3788d8")
     description = Column(Text)
     periodicity = Column(String)
@@ -75,6 +76,7 @@ class EventVote(AuditMixin, Base):
     can_attend = Column(Boolean, nullable=True) 
     
     event = relationship("Event", back_populates="votes")
+    user = relationship("User", foreign_keys=[user_id])
 
 
 # ==========================================

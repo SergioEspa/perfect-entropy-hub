@@ -12,7 +12,7 @@ if not DATABASE_URL:
     raise ValueError("La variable DATABASE_URL no está configurada en el .env")
 
 # Creamos el motor asíncrono (echo=True imprime las queries en consola, útil en desarrollo)
-engine = create_async_engine(DATABASE_URL, echo=True)
+engine = create_async_engine(DATABASE_URL, echo=True, pool_pre_ping=True, pool_recycle=1800)
 
 # Fábrica de sesiones asíncronas
 AsyncSessionLocal = async_sessionmaker(
@@ -29,5 +29,8 @@ async def get_db():
     async with AsyncSessionLocal() as session:
         try:
             yield session
+        except Exception as e:
+            await session.rollback()
+            raise e
         finally:
             await session.close()

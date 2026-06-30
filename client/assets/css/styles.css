@@ -294,3 +294,37 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 input[type="time"]::-webkit-calendar-picker-indicator:hover {
     opacity: 1;
 }
+
+/* Bloquear el sombreado oscuro de selección nativa de FullCalendar */
+.fc-event-selected::after, 
+.fc-event:focus::after {
+    display: none !important;
+    background: transparent !important;
+}
+
+/* Evitar que al arrastrar se modifique drásticamente la opacidad o el fondo */
+.fc-event-dragging {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important; /* Mantiene un feedback táctil elegante */
+}
+
+/* Fila del álbum interactiva */
+.album-item {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+/* Efecto hover sobre toda la fila */
+.album-item:hover {
+    background-color: #053946 !important;
+}
+
+/* El botón de editar está oculto por defecto */
+.album-item .edit-album-trigger {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+/* Al hacer hover en la fila, el botón aparece */
+.album-item:hover .edit-album-trigger {
+    opacity: 1;
+}

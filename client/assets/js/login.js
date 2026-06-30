@@ -10,33 +10,31 @@ export function initializeLogin() {
         
         const memberId = document.querySelector('input[name="memberId"]:checked').value;
         const password = document.getElementById('band-password').value;
-        const memberName = document.querySelector(`input[name="memberId"]:checked`).dataset.name || memberId;
 
-        // Estado de carga
         btnSubmit.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> COMPROBANDO...`;
         btnSubmit.disabled = true;
         errorMsg.classList.add('d-none');
 
         try {
-            const response = await fetch(`${CONFIG.API_URL}/api/auth/verify`, {
-                method: 'GET',
+            const response = await fetch(`${CONFIG.API_URL}/api/auth/login`, {
+                method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-Member-Id': memberId,
-                    'X-Band-Pass': password
-                }
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    member_id: parseInt(memberId),
+                    password: password
+                })
             });
 
-            if (!response.ok) {
-                throw new Error("Credenciales inválidas");
-            }
+            if (!response.ok) throw new Error("Credenciales inválidas");
 
-            // Si pasa el portero, guardamos las llaves en el navegador
-            localStorage.setItem('pe_member_id', memberId);
-            localStorage.setItem('pe_member_name', memberName);
-            localStorage.setItem('pe_band_pass', password);
+            const data = await response.json();
 
-            // Recargamos la aplicación completa para que el main.js inyecte todo
+            localStorage.setItem('pe_hub_token', data.access_token);
+            localStorage.setItem('pe_member_name', data.member_name);
+            localStorage.setItem('pe_member_id', memberId); 
+
             window.location.reload();
 
         } catch (error) {

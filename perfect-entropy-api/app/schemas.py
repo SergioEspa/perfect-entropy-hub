@@ -8,38 +8,41 @@ from enum import Enum
 # ==========================================
 
 class EventType(str, Enum):
-    OFICIAL = "oficial"
-    PROPUESTA = "propuesta"
-    BLOQUEO = "bloqueo"
+    ENSAYO = "ENSAYO"
+    GRABACION = "GRABACION"
+    CONCIERTO = "CONCIERTO"
+    LLAMADA = "LLAMADA"
+    REUNION = "REUNION"
 
 class EventStatus(str, Enum):
-    PENDIENTE = "pendiente"
-    CONFIRMADO = "confirmado"
-    CANCELADO = "cancelado"
+    PENDIENTE = "PENDIENTE"
+    CONFIRMADO = "CONFIRMADO"
+    CANCELADO = "CANCELADO"
+    PASADO = "PASADO"
 
 class SongStatus(str, Enum):
-    IDEA = "Idea"
-    COMPOSICION = "Composición"
-    GRABACION = "Grabación"
-    MASTERIZADO = "Masterizado"
+    IDEA = "IDEA"
+    COMPOSICION = "COMPOSICION"
+    GRABACION = "GRABACION"
+    MASTERIZADO = "MASTERIZADO"
 
 class SectionType(str, Enum):
-    INTRO = "Intro"
-    VERSO = "Verso"
-    ESTRIBILLO = "Estribillo"
-    SOLO = "Solo"
-    PUENTE = "Puente"
-    OUTRO = "Outro"
+    INTRO = "INTRO"
+    VERSO = "VERSO"
+    ESTRIBILLO = "ESTRIBILLO"
+    SOLO = "SOLO"
+    PUENTE = "PUENTE"
+    OUTRO = "OUTRO"
 
 class ConceptStatus(str, Enum):
-    BORRADOR = "Borrador"
-    EN_DESARROLLO = "En Desarrollo"
-    APROBADO = "Aprobado"
+    BORRADOR = "BORRADOR"
+    EN_DESARROLLO = "EN_DESARROLLO"
+    APROBADO = "APROBADO"
 
 class PostStatus(str, Enum):
-    PENDIENTE = "Pendiente"
-    PROGRAMADO = "Programado"
-    PUBLICADO = "Publicado"
+    PENDIENTE = "PENDIENTE"
+    PROGRAMADO = "PROGRAMADO"
+    PUBLICADO = "PUBLICADO"
 
 class Periodicity(str, Enum):
     SINGLE = "SINGLE"
@@ -77,6 +80,12 @@ class SongBase(BaseModel):
     description: Optional[str] = None
     status: SongStatus = SongStatus.IDEA
     id_album: Optional[int] = None
+
+class SongCreate(SongBase):
+    pass
+
+class SongUpdate(SongBase):
+    pass
 
 class SongOut(SongBase):
     id: int
@@ -137,12 +146,65 @@ class EventBase(BaseModel):
     color: Optional[str] = "#3788d8"
     description: Optional[str] = None
 
+class LoginRequest(BaseModel):
+    member_id: int
+    password: str
+
 class EventCreate(EventBase):
     pass
+
+class EventUpdate(BaseModel):
+    id: int
+    title: Optional[str]
+    start_time: Optional[datetime]
+    end_time: Optional[datetime]
+    type: Optional[EventType]
+    status: Optional[EventStatus] = EventStatus.CONFIRMADO
+    periodicity: Optional[Periodicity] = Periodicity.SINGLE
+    color: Optional[str] = "#3788d8"
+    description: Optional[str] = None
+
+class EventVoteDetailOut(BaseModel):
+    can_attend: Optional[bool]
+    user_id: int
 
 class EventOut(EventBase):
     id: int
     owner_id: int # Cambiado a int porque ahora tenemos tabla User
+    votes: list[EventVoteDetailOut] = []
+    class Config:
+        from_attributes = True
+        
+class VoteCreate(BaseModel):
+    can_attend: Optional[bool] = None
+    
+class SectionOut(BaseModel):
+    id: int
+    type: str
+    lyrics: Optional[str]
+    chords: Optional[str]
+    bpm: Optional[int]
+    # Omitimos id_song por redundancia en el arbol
+
+    class Config:
+        from_attributes = True
+
+class RecordingOut(BaseModel):
+    id: int
+    url: str
+    title: Optional[str]
+
+    class Config:
+        from_attributes = True
+
+class SongDetailOut(BaseModel):
+    id: int
+    title: str
+    description: Optional[str]
+    status: str
+    id_album: int
+    sections: List[SectionOut] = []
+    recordings: List[RecordingOut] = []
 
     class Config:
         from_attributes = True
