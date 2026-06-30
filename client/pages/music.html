@@ -185,3 +185,76 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="modalSection" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-secondary text-light">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title font-monospace fw-bold text-warning" id="section-modal-title">
+                    <i class="bi bi-layout-text-window px-2"></i>Nueva Sección
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="section-form">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary mb-1">TIPO</label>
+                        <select id="section-type" class="form-select bg-dark text-light border-secondary" required>
+                            <option value="INTRO">Intro</option>
+                            <option value="VERSO">Verso</option>
+                            <option value="ESTRIBILLO">Estribillo</option>
+                            <option value="SOLO">Solo</option>
+                            <option value="PUENTE">Puente</option>
+                            <option value="OUTRO">Outro</option>
+                        </select>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-secondary mb-1">COMPÁS</label>
+                            <input type="text" id="section-time-signature" class="form-control bg-dark text-light border-secondary" placeholder="4/4">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-secondary mb-1">BPM</label>
+                            <input type="number" id="section-bpm" class="form-control bg-dark text-light border-secondary" placeholder="120">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary mb-1">ACORDES</label>
+                        <input type="text" id="section-chords" class="form-control bg-dark text-light border-secondary font-monospace" placeholder="Em - C - G - D">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold text-secondary mb-1">LETRA</label>
+                        <textarea id="section-lyrics" class="form-control bg-dark text-light border-secondary shadow-sm" rows="4"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-danger me-auto" id="btn-delete-section-trigger" style="display: none;">Borrar</button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning fw-bold" id="btn-save-section">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmDeleteSection" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-secondary text-light">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title font-monospace fw-bold text-danger">
+                    <i class="bi bi-exclamation-triangle-fill px-2"></i>¿Eliminar Sección?
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Esta sección se eliminará de forma irreversible junto con sus grabaciones asociadas.
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-secondary me-auto" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger fw-bold" id="btn-confirm-delete-section">
+                    <i class="bi bi-trash-fill me-1"></i> Confirmar Destrucción
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

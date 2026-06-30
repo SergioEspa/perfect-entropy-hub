@@ -108,6 +108,13 @@ class SectionOut(SectionBase):
     class Config:
         from_attributes = True
 
+class SectionUpdate(BaseModel):
+    type: Optional[SectionType] = None
+    lyrics: Optional[str] = None
+    chords: Optional[str] = None
+    time_signature: Optional[str] = None
+    bpm: Optional[int] = None
+
 # ==========================================
 # SCHEMAS DE CONCEPTO Y SOCIAL
 # ==========================================

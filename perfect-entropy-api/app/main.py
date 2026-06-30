@@ -461,3 +461,70 @@ async def delete_song(song_id: int, db: AsyncSession = Depends(get_db)):
     
     await song.disable(session=db)
     return {"status": "success"}
+
+@app.post("/api/sections", response_model=schemas.SectionOut)
+async def create_section(
+    section_data: schemas.SectionBase,
+    current_member_id: int = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(models.Song).where(models.Song.id == section_data.id_song))
+    song = result.scalars().first()
+    if not song:
+        raise HTTPException(status_code=404, detail="Canción no encontrada")
+
+    new_section = models.Section(**section_data.model_dump())
+    await new_section.create(session=db, creator_id=current_member_id)
+    return new_section
+
+@app.patch("/api/sections/{section_id}", response_model=schemas.SectionOut)
+async def update_section(
+    section_id: int,
+    section_data: schemas.SectionUpdate,
+    current_member_id: int = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(models.Section).where(models.Section.id == section_id))
+    section = result.scalars().first()
+    if not section:
+        raise HTTPException(status_code=404, detail="Sección no encontrada")
+
+    for key, value in section_data.model_dump(exclude_unset=True).items():
+        setattr(section, key, value)
+
+    await db.commit()
+    await db.refresh(section)
+    return section
+
+@app.delete("/api/sections/{section_id}")
+async def delete_section(
+    section_id: int,
+    current_member_id: int = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(models.Section).where(models.Section.id == section_id))
+    section = result.scalars().first()
+    if not section:
+        raise HTTPException(status_code=404, detail="Sección no encontrada")
+
+    await section.disable(session=db)
+    return {"status": "success"}
+
+@app.get("/api/sections/song/{song_id}", response_model=list[schemas.SectionOut])
+async def get_sections_for_song(
+    song_id: int,
+    current_member_id: int = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(models.Song).where(models.Song.id == song_id))
+    song = result.scalars().first()
+    if not song:
+        raise HTTPException(status_code=404, detail="Canción no encontrada")
+
+    sections_result = await db.execute(
+        select(models.Section).where(
+            models.Section.id_song == song_id,
+            models.Section.flag_disabled == False
+        )
+    )
+    return sections_result.scalars().all()

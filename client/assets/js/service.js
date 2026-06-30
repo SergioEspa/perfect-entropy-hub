@@ -189,10 +189,58 @@ export async function updateSong(songId, payload) {
 }
 
 export async function deleteSong(songId) {
+    console.log("EYEYEYEYEYEY")
     const response = await fetch(`${CONFIG.API_URL}/api/songs/${songId}`, {
         method: 'DELETE',
         headers: getAuthHeaders()
     });
     if (!response.ok) throw new Error("Error eliminando canción");
+    return await response.json();
+}
+
+export async function createSection(payload) {
+    const response = await fetch(`${CONFIG.API_URL}/api/sections`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload)
+    });
+    if (!response.ok) throw new Error("Error creando sección");
+    return await response.json();
+}
+
+export async function updateSection(sectionId, payload) {
+    const response = await fetch(`${CONFIG.API_URL}/api/sections/${sectionId}`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload)
+    });
+    if (!response.ok) throw new Error("Error actualizando sección");
+    return await response.json();
+}
+
+export async function deleteSection(sectionId) {
+    const response = await fetch(`${CONFIG.API_URL}/api/sections/${sectionId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+    });
+    if (!response.ok) throw new Error("Error eliminando sección");
+    return await response.json();
+}
+
+export async function getAlbumSongsDetailed(albumId) {
+    const response = await fetch(`${CONFIG.API_URL}/api/albums/${albumId}/songs`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+    });
+    if (!response.ok) throw new Error("Error obteniendo el detalle de las canciones");
+    return await response.json();
+}
+
+export async function getSectionsForSong(songId) {
+    const response = await fetch(`${CONFIG.API_URL}/api/sections/song/${songId}`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+    });
+    if (!response.ok) throw new Error("Error obteniendo las secciones de la canción");
     return await response.json();
 }

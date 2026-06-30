@@ -1,6 +1,6 @@
 import { CONFIG } from "./config.js"; 
 // FIX 1: Añadidos deleteAlbum, createSong y updateSong que faltaban en el import
-import { createAlbum, createSong, deleteAlbum, deleteSong, getAlbums, getSongsByAlbum, updateAlbum, updateSong } from "./service.js";
+import { createAlbum, createSection, createSong, deleteAlbum, deleteSection, deleteSong, getAlbumSongsDetailed, getAlbums, getSectionsForSong, updateAlbum, updateSection, updateSong } from "./service.js";
 
 export const initializeMusic = async () => {
     // --- 1. ESTADO GLOBAL ---
@@ -8,7 +8,8 @@ export const initializeMusic = async () => {
         albums: [],
         currentAlbumId: null,
         songs: [],
-        currentSongId: null
+        currentSongId: null,
+        currentSectionId: null
     };
 
     // --- 2. NODOS DEL DOM ---
@@ -29,7 +30,7 @@ export const initializeMusic = async () => {
     const albumModal = new bootstrap.Modal(albumModalEl);
 
     const deleteAlbumModalEl = document.getElementById('confirmDeleteAlbum');
-    if (!document.body.contains(deleteAlbumModalEl)) {
+    if (deleteAlbumModalEl.parentNode !== document.body) {
         document.body.appendChild(deleteAlbumModalEl);
     }
     const deleteAlbumModal = new bootstrap.Modal(deleteAlbumModalEl);
@@ -42,10 +43,23 @@ export const initializeMusic = async () => {
     const songModal = new bootstrap.Modal(songModalEl);
 
     const deleteSongModalEl = document.getElementById('confirmDeleteSong');
-    if (!document.body.contains(deleteSongModalEl)) {
+    if (deleteSongModalEl.parentNode !== document.body) {
         document.body.appendChild(deleteSongModalEl);
     }
     const deleteSongModal = new bootstrap.Modal(deleteSongModalEl);
+
+    // SECCIONES
+    const sectionModalEl = document.getElementById('modalSection');
+    if (sectionModalEl.parentNode !== document.body) {
+        document.body.appendChild(sectionModalEl);
+    }
+    const sectionModal = new bootstrap.Modal(sectionModalEl);
+
+    const deleteSectionModalEl = document.getElementById('confirmDeleteSection');
+    if (deleteSectionModalEl.parentNode !== document.body) {
+        document.body.appendChild(deleteSectionModalEl);
+    }
+    const deleteSectionModal = new bootstrap.Modal(deleteSectionModalEl);
 
     // --- 4. RENDERIZADORES ---
     const renderAlbums = () => {
@@ -101,16 +115,19 @@ export const initializeMusic = async () => {
             
             <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-3">
                 <h6 class="text-light mb-0">Estructura</h6>
-                <button class="btn btn-sm btn-outline-warning rounded-pill" style="font-size: 10px;">+ Sección</button>
+                <button class="btn btn-sm btn-outline-warning rounded-pill" id="btn-add-section" style="font-size: 10px;">+ Sección</button>
             </div>
-            
+
             <div class="accordion accordion-flush" id="sectionsAccordion">
                 ${(song.sections || []).map((sec) => `
                     <div class="accordion-item bg-transparent border-secondary">
-                        <h2 class="accordion-header">
+                        <h2 class="accordion-header d-flex align-items-center">
                             <button class="accordion-button collapsed bg-dark text-light border-secondary p-2" type="button" data-bs-toggle="collapse" data-bs-target="#sec-${sec.id}">
-                                <span class="badge bg-dark border border-secondary text-secondary me-2">${sec.type}</span> 
+                                <span class="badge bg-dark border border-secondary text-secondary me-2">${sec.type}</span>
                                 <span class="ms-auto small text-secondary">${sec.bpm ? sec.bpm + ' BPM' : ''}</span>
+                            </button>
+                            <button class="btn btn-sm btn-link text-warning p-0 ms-2 edit-section-trigger" data-id="${sec.id}" title="Editar Sección">
+                                <i class="bi bi-gear-fill"></i>
                             </button>
                         </h2>
                         <div id="sec-${sec.id}" class="accordion-collapse collapse" data-bs-parent="#sectionsAccordion">
@@ -166,6 +183,30 @@ export const initializeMusic = async () => {
         songModal.show();
     };
 
+    const openSectionModal = (section = null) => {
+        const form = document.getElementById('section-form');
+        form.reset();
+
+        const deleteTrigger = document.getElementById('btn-delete-section-trigger');
+        const titleEl = document.getElementById('section-modal-title');
+
+        if (section) {
+            titleEl.innerHTML = `<i class="bi bi-pencil-square px-2"></i>Editar Sección`;
+            document.getElementById('section-type').value = section.type;
+            document.getElementById('section-time-signature').value = section.time_signature || '';
+            document.getElementById('section-bpm').value = section.bpm || '';
+            document.getElementById('section-chords').value = section.chords || '';
+            document.getElementById('section-lyrics').value = section.lyrics || '';
+            state.currentSectionId = section.id;
+            deleteTrigger.style.display = 'block';
+        } else {
+            titleEl.innerHTML = `<i class="bi bi-layout-text-window px-2"></i>Nueva Sección`;
+            state.currentSectionId = null;
+            deleteTrigger.style.display = 'none';
+        }
+        sectionModal.show();
+    };
+
     // --- 6. DELEGACIÓN DE EVENTOS ---
     
     document.getElementById('btn-new-album').addEventListener('click', () => {
@@ -194,13 +235,13 @@ export const initializeMusic = async () => {
             state.currentAlbumId = id;
             DOM.btnAddSong.disabled = false;
             
-            state.songs = await getSongsByAlbum(state.currentAlbumId);
+            state.songs = await getAlbumSongsDetailed(state.currentAlbumId);
             renderSongs();
             DOM.songDetails.innerHTML = '<div class="text-center text-secondary mt-5 small">Selecciona una canción</div>';
         }
     });
 
-    DOM.songList.addEventListener('click', (e) => {
+    DOM.songList.addEventListener('click', async (e) => {
         const card = e.target.closest('.song-item');
         if (!card) return;
 
@@ -212,9 +253,8 @@ export const initializeMusic = async () => {
             return;
         }
 
-
-        state.currentSongId = parseInt(card.dataset.id);
-        renderSongDetails();
+        state.currentSongId = id;
+        await refreshSectionsForCurrentSong();
     });
 
     const loadAlbums = async () => {
@@ -227,15 +267,100 @@ export const initializeMusic = async () => {
     };
 
     // FIX 2: Función loadSongs añadida — se llamaba en varios handlers pero no existía
+    // Ahora usa getAlbumSongsDetailed para que state.songs siempre incluya sections/recordings,
+    // evitando inconsistencias de schema entre distintos puntos de recarga.
     const loadSongs = async () => {
         if (!state.currentAlbumId) return;
         try {
-            state.songs = await getSongsByAlbum(state.currentAlbumId);
+            state.songs = await getAlbumSongsDetailed(state.currentAlbumId);
             renderSongs();
+            if (state.currentSongId) {
+                renderSongDetails();
+            }
         } catch (error) {
             console.error("Error al cargar las canciones desde la API:", error);
         }
     };
+
+    const refreshSectionsForCurrentSong = async () => {
+        if (!state.currentSongId) return;
+        try {
+            const sections = await getSectionsForSong(state.currentSongId);
+            const song = state.songs.find(s => s.id === state.currentSongId);
+            if (song) {
+                song.sections = sections;
+            }
+            renderSongDetails();
+        } catch (error) {
+            console.error("Error al refrescar las secciones de la canción:", error);
+        }
+    };
+
+    DOM.songDetails.addEventListener('click', (e) => {
+        if (e.target.closest('#btn-add-section')) {
+            openSectionModal(null);
+            return;
+        }
+        const editBtn = e.target.closest('.edit-section-trigger');
+        if (editBtn) {
+            const song = state.songs.find(s => s.id === state.currentSongId);
+            const sectionObj = (song?.sections || []).find(s => s.id === parseInt(editBtn.dataset.id));
+            if (sectionObj) openSectionModal(sectionObj);
+        }
+    });
+
+    document.getElementById('btn-save-section').addEventListener('click', async () => {
+        const form = document.getElementById('section-form');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const bpmValue = document.getElementById('section-bpm').value;
+        const payload = {
+            type: document.getElementById('section-type').value,
+            time_signature: document.getElementById('section-time-signature').value || null,
+            bpm: bpmValue ? parseInt(bpmValue) : null,
+            chords: document.getElementById('section-chords').value || null,
+            lyrics: document.getElementById('section-lyrics').value || null,
+            id_song: state.currentSongId
+        };
+
+        try {
+            if (state.currentSectionId) {
+                await updateSection(state.currentSectionId, payload);
+            } else {
+                await createSection(payload);
+            }
+            await refreshSectionsForCurrentSong();
+        } catch (error) {
+            alert("Hubo un error al guardar la sección.");
+            console.error(error);
+        }
+
+        sectionModal.hide();
+    });
+
+    document.getElementById('btn-delete-section-trigger').addEventListener('click', () => {
+        sectionModalEl.addEventListener('hidden.bs.modal', () => {
+            deleteSectionModal.show();
+        }, { once: true });
+        sectionModal.hide();
+    });
+
+    document.getElementById('btn-confirm-delete-section').addEventListener('click', async () => {
+        if (!state.currentSectionId) return;
+
+        try {
+            await deleteSection(state.currentSectionId);
+            deleteSectionModal.hide();
+            state.currentSectionId = null;
+            await refreshSectionsForCurrentSong();
+        } catch (error) {
+            alert("No se pudo eliminar la sección.");
+            console.error(error);
+        }
+    });
 
     document.getElementById('btn-delete-album-trigger').addEventListener('click', () => {
         albumModalEl.addEventListener('hidden.bs.modal', () => {
