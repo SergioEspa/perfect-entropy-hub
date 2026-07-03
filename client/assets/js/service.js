@@ -209,6 +209,7 @@ export async function createSection(payload) {
 }
 
 export async function updateSection(sectionId, payload) {
+    console.log("PAYLOAD:",payload)
     const response = await fetch(`${CONFIG.API_URL}/api/sections/${sectionId}`, {
         method: 'PATCH',
         headers: getAuthHeaders(),
@@ -242,5 +243,36 @@ export async function getSectionsForSong(songId) {
         headers: getAuthHeaders()
     });
     if (!response.ok) throw new Error("Error obteniendo las secciones de la canción");
+    return await response.json();
+}
+
+// 1. Sube el archivo físico y devuelve la URL local
+export async function uploadRecordingFile(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`${CONFIG.API_URL}/api/recordings/upload`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('pe_hub_token')}`
+            // NOTA: NO envíes 'Content-Type': 'application/json' ni 'multipart/form-data'. 
+            // El navegador debe calcular el boundary automáticamente al usar FormData.
+        },
+        body: formData
+    });
+
+    if (!response.ok) throw new Error("Error subiendo el archivo al servidor");
+    return await response.json();
+}
+
+// 2. Crea el registro en PostgreSQL
+export async function createRecording(payload) {
+    const response = await fetch(`${CONFIG.API_URL}/api/recordings`, {
+        method: 'POST',
+        headers: getAuthHeaders(), // Utiliza la función que ya tienes en service.js
+        body: JSON.stringify(payload)
+    });
+    
+    if (!response.ok) throw new Error("Error guardando el registro de la grabación");
     return await response.json();
 }

@@ -1,6 +1,21 @@
 import { CONFIG } from "./config.js"; 
 // FIX 1: Añadidos deleteAlbum, createSong y updateSong que faltaban en el import
-import { createAlbum, createSection, createSong, deleteAlbum, deleteSection, deleteSong, getAlbumSongsDetailed, getAlbums, getSectionsForSong, updateAlbum, updateSection, updateSong } from "./service.js";
+import { 
+    createAlbum, 
+    createSection, 
+    createSong, 
+    deleteAlbum, 
+    deleteSection, 
+    deleteSong, 
+    getAlbumSongsDetailed, 
+    getAlbums, 
+    getSectionsForSong, 
+    updateAlbum, 
+    updateSection, 
+    updateSong,
+    uploadRecordingFile,
+    createRecording
+} from "./service.js";
 
 export const initializeMusic = async () => {
     // --- 1. ESTADO GLOBAL ---
@@ -106,40 +121,167 @@ export const initializeMusic = async () => {
         const song = state.songs.find(s => s.id === state.currentSongId);
         if (!song) return;
 
-        DOM.detailTitle.innerHTML = `<i class="bi bi-music-note-beamed me-2"></i>${song.title}`;
-        
-        DOM.songDetails.innerHTML = `
-            <div class="mb-4">
-                <p class="text-light small">${song.description || ''}</p>
-            </div>
-            
-            <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-3">
-                <h6 class="text-light mb-0">Estructura</h6>
-                <button class="btn btn-sm btn-outline-warning rounded-pill" id="btn-add-section" style="font-size: 10px;">+ Sección</button>
-            </div>
-
-            <div class="accordion accordion-flush" id="sectionsAccordion">
-                ${(song.sections || []).map((sec) => `
-                    <div class="accordion-item bg-transparent border-secondary">
-                        <h2 class="accordion-header d-flex align-items-center">
-                            <button class="accordion-button collapsed bg-dark text-light border-secondary p-2" type="button" data-bs-toggle="collapse" data-bs-target="#sec-${sec.id}">
-                                <span class="badge bg-dark border border-secondary text-secondary me-2">${sec.type}</span>
-                                <span class="ms-auto small text-secondary">${sec.bpm ? sec.bpm + ' BPM' : ''}</span>
-                            </button>
-                            <button class="btn btn-sm btn-link text-warning p-0 ms-2 edit-section-trigger" data-id="${sec.id}" title="Editar Sección">
-                                <i class="bi bi-gear-fill"></i>
-                            </button>
-                        </h2>
-                        <div id="sec-${sec.id}" class="accordion-collapse collapse" data-bs-parent="#sectionsAccordion">
-                            <div class="accordion-body text-light small">
-                                ${sec.chords ? `<div class="mb-2"><strong class="text-info">Acordes:</strong> <span class="font-monospace">${sec.chords}</span></div>` : ''}
-                                ${sec.lyrics ? `<div><strong class="text-info">Letra:</strong><br><pre class="text-light" style="white-space: pre-wrap; font-family: inherit;">${sec.lyrics}</pre></div>` : ''}
-                            </div>
-                        </div>
-                    </div>
-                `).join('')}
+        // 1. Cabecera mejorada: Incluye el estado de la canción.
+        DOM.detailTitle.innerHTML = `
+            <div class="d-flex align-items-center justify-content-between w-100">
+                <span><i class="bi bi-music-note-beamed me-2 text-warning"></i>${song.title}</span>
+                <span class="badge bg-secondary ms-2 text-uppercase" style="font-size: 0.5em; letter-spacing: 1px;">${song.status}</span>
             </div>
         `;
+        
+        // 2. Renderizador de Secciones (Ahora expone Key, Time Signature y estados vacíos)
+        const sectionsHTML = (song.sections && song.sections.length > 0) 
+            ? song.sections.map((sec) => `
+                <div class="accordion-item bg-transparent border-secondary mb-2 rounded">
+                    <h2 class="accordion-header d-flex align-items-center bg-dark rounded">
+                        <button class="accordion-button collapsed bg-transparent text-light shadow-none p-3" type="button" data-bs-toggle="collapse" data-bs-target="#sec-${sec.id}">
+                            <span class="badge bg-dark border border-secondary me-3" style="min-width: 80px;">${sec.type}</span>
+                            
+                            <div class="d-flex gap-2 ms-auto me-2 small">
+                                ${sec.key ? `<span class="badge bg-dark border border-secondary text-secondary" title="Tonalidad"><i class="bi bi-music-note me-1"></i>${sec.key}</span>` : ''}
+                                ${sec.time_signature ? `<span class="badge bg-dark border border-secondary text-secondary" title="Compás"><i class="bi bi-clock me-1"></i>${sec.time_signature}</span>` : ''}
+                                ${sec.bpm ? `<span class="badge bg-dark border border-secondary text-secondary" title="BPM"><i class="bi bi-speedometer2 me-1"></i>${sec.bpm} bpm</span>` : ''}
+                            </div>
+                        </button>
+                        <button class="btn btn-sm btn-link text-warning p-2 me-2 edit-section-trigger position-relative" style="z-index: 3;" data-id="${sec.id}" title="Editar Sección">
+                            <i class="bi bi-gear-fill"></i>
+                        </button>
+                    </h2>
+                    <div id="sec-${sec.id}" class="accordion-collapse collapse">
+                        <div class="accordion-body text-light small border-top border-secondary bg-dark bg-opacity-25 rounded-bottom">
+                            
+                            ${sec.chords ? `
+                                <div class="mb-3">
+                                    <div class="text-info mb-1 fw-bold" style="font-size: 11px; text-transform: uppercase;"><i class="bi bi-music-note-list me-1"></i>Acordes</div>
+                                    <div class="p-2 bg-dark rounded font-monospace border border-secondary border-opacity-50 text-warning fs-6 tracking-wide">${sec.chords}</div>
+                                </div>` : ''}
+                            
+                            ${sec.lyrics ? `
+                                <div>
+                                    <div class="text-info mb-1 fw-bold" style="font-size: 11px; text-transform: uppercase;"><i class="bi bi-mic me-1"></i>Letra</div>
+                                    <div class="p-2 bg-dark bg-opacity-50 rounded border border-secondary border-opacity-25">
+                                        <pre class="text-light mb-0" style="white-space: pre-wrap; font-family: inherit; line-height: 1.5;">${sec.lyrics}</pre>
+                                    </div>
+                                </div>` : ''}
+                                
+                            ${!sec.chords && !sec.lyrics ? `<div class="text-secondary text-center fst-italic py-2">Sección sin acordes ni letra</div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('') 
+            : '<div class="text-center text-secondary my-4 small fst-italic">No hay secciones definidas en la estructura.</div>';
+
+        // 3. Renderizador de Grabaciones Multiformato
+        const recordingsHTML = (song.recordings && song.recordings.length > 0)
+            ? song.recordings.map(rec => {
+                let mediaContent = '';
+                const url = rec.url;
+
+                // 1. Archivo Local (Subido a tu propio servidor)
+                if (url.startsWith('/uploads/')) {
+                    
+                    // LA CLAVE: Concatenar el dominio del backend
+                    const fullUrl = `${CONFIG.API_URL}${url}`;
+                    
+                    const isVideo = url.match(/\.(mp4|webm|ogg|mov)$/i);
+                    
+                    if (isVideo) {
+                        mediaContent = `
+                            <video controls class="w-100 rounded mt-2 border border-secondary" style="max-height: 250px; background: #000;">
+                                <source src="${fullUrl}">Tu navegador no soporta vídeo.
+                            </video>`;
+                    } else {
+                        mediaContent = `
+                            <audio controls class="w-100 mt-2" style="height: 40px; outline: none;">
+                                <source src="${fullUrl}">Tu navegador no soporta audio.
+                            </audio>`;
+                    }
+                }
+                // 2. Enlace de YouTube
+                else if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                    // Extraer ID de YouTube para poder incrustarlo
+                    const videoId = url.includes('youtu.be') ? url.split('/').pop().split('?')[0] : new URLSearchParams(new URL(url).search).get('v');
+                    if (videoId) {
+                        mediaContent = `
+                            <div class="ratio ratio-16x9 mt-2 border border-secondary rounded overflow-hidden">
+                                <iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>
+                            </div>`;
+                    }
+                }
+                // 3. Enlace de Google Drive
+                else if (url.includes('drive.google.com/file/d/')) {
+                    // Extraer el ID para usar el reproductor nativo de Drive
+                    const fileId = url.split('/d/')[1].split('/')[0];
+                    mediaContent = `
+                        <div class="ratio ratio-16x9 mt-2 border border-secondary rounded overflow-hidden">
+                            <iframe src="https://drive.google.com/file/d/${fileId}/preview" allowfullscreen></iframe>
+                        </div>`;
+                }
+                // 4. Fallback: URL genérica (Soundcloud, Dropbox, etc)
+                else {
+                    mediaContent = `
+                        <a href="${url}" target="_blank" class="btn btn-sm btn-outline-info w-100 mt-2">
+                            <i class="bi bi-box-arrow-up-right me-2"></i>Abrir Enlace Externo
+                        </a>`;
+                }
+
+                // Formatear fecha (aprovechando que ahora la devolvemos en el Schema)
+                const dateStr = rec.date_creation ? new Date(rec.date_creation).toLocaleDateString() : '';
+
+                let referenceBadge = '<span class="badge bg-dark border border-secondary text-info ms-2 fw-normal" style="font-size: 10px; letter-spacing: 0.5px;">Tema Completo</span>';
+                
+                if (rec.id_section && song.sections) {
+                    const linkedSection = song.sections.find(s => s.id === rec.id_section);
+                    if (linkedSection) {
+                        // Si es una sección, le damos un tono amarillo (warning) para diferenciarlo
+                        referenceBadge = `<span class="badge bg-dark border border-secondary text-warning ms-2 fw-normal" style="font-size: 10px; letter-spacing: 0.5px;">${linkedSection.type}</span>`;
+                    }
+                }
+
+                // Tarjeta final de la grabación
+                return `
+                <div class="p-3 bg-dark bg-opacity-50 border border-secondary rounded mb-3">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div class="text-light fw-bold flex-grow-1 pe-2 d-flex align-items-center text-truncate">
+                            <i class="bi bi-play-circle text-info me-2"></i>
+                            <span class="text-truncate">${rec.title || 'Grabación'}</span>
+                            ${referenceBadge}
+                        </div>
+                        
+                        ${dateStr ? `<span class="badge bg-secondary text-dark flex-shrink-0" style="font-size: 10px;">${dateStr}</span>` : ''}
+                    </div>
+                    ${mediaContent}
+                </div>`;
+            }).join('')
+            : '<div class="text-center text-secondary my-4 small fst-italic">No hay grabaciones vinculadas.</div>';
+
+        // 4. Inyección Final en el DOM
+        DOM.songDetails.innerHTML = `
+            ${song.description ? `
+                <div class="mb-4 p-3 bg-info bg-opacity-10 rounded border border-info border-opacity-25">
+                    <p class="text-light small mb-0">${song.description}</p>
+                </div>` : ''}
+            
+            <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-3 mt-4">
+                <h6 class="text-light mb-0"><i class="bi bi-layers me-2 text-secondary"></i>Estructura</h6>
+                <button class="btn btn-sm btn-outline-warning rounded-pill px-3 transition-all" id="btn-add-section" style="font-size: 11px; font-weight: 600;">
+                    <i class="bi bi-plus-lg me-1"></i>Sección
+                </button>
+            </div>
+            <div class="accordion accordion-flush mb-4 text-warning" id="sectionsAccordion" data-bs-theme="dark">
+                ${sectionsHTML}
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-3 mt-4">
+                <h6 class="text-light mb-0"><i class="bi bi-cassette me-2 text-secondary"></i>Referencias / Demos</h6>
+                <button class="btn btn-sm btn-outline-light rounded-circle" id="btn-add-recording"><i class="bi bi-plus"></i></button>
+            </div>
+            <div id="recordings-list">
+                ${recordingsHTML}
+            </div>
+        `;
+        DOM.btnAddRecording = document.getElementById('btn-add-recording');
+        DOM.btnAddRecording.addEventListener('click', openRecordingModal);
     };
 
     // --- 5. LÓGICA DE MODALES ---
@@ -191,8 +333,11 @@ export const initializeMusic = async () => {
         const titleEl = document.getElementById('section-modal-title');
 
         if (section) {
+            console.log("SECTION:",section);
             titleEl.innerHTML = `<i class="bi bi-pencil-square px-2"></i>Editar Sección`;
             document.getElementById('section-type').value = section.type;
+            document.getElementById('section-key').value = section.key?.split(" ")[0] || '';
+            document.getElementById('section-mode').value = section.key?.split(" ")[1] || '';
             document.getElementById('section-time-signature').value = section.time_signature || '';
             document.getElementById('section-bpm').value = section.bpm || '';
             document.getElementById('section-chords').value = section.chords || '';
@@ -236,6 +381,7 @@ export const initializeMusic = async () => {
             DOM.btnAddSong.disabled = false;
             
             state.songs = await getAlbumSongsDetailed(state.currentAlbumId);
+            console.log("DETAILED SONGS:",state.songs);
             renderSongs();
             DOM.songDetails.innerHTML = '<div class="text-center text-secondary mt-5 small">Selecciona una canción</div>';
         }
@@ -303,6 +449,7 @@ export const initializeMusic = async () => {
         }
         const editBtn = e.target.closest('.edit-section-trigger');
         if (editBtn) {
+            console.log(state.currentSongId);
             const song = state.songs.find(s => s.id === state.currentSongId);
             const sectionObj = (song?.sections || []).find(s => s.id === parseInt(editBtn.dataset.id));
             if (sectionObj) openSectionModal(sectionObj);
@@ -317,9 +464,13 @@ export const initializeMusic = async () => {
         }
 
         const bpmValue = document.getElementById('section-bpm').value;
+        const key = document.getElementById('section-key').value
+        const mode = document.getElementById('section-mode').value
+
         const payload = {
             type: document.getElementById('section-type').value,
             time_signature: document.getElementById('section-time-signature').value || null,
+            key: (key && mode) ? `${key} ${mode}` : null,
             bpm: bpmValue ? parseInt(bpmValue) : null,
             chords: document.getElementById('section-chords').value || null,
             lyrics: document.getElementById('section-lyrics').value || null,
@@ -482,6 +633,121 @@ export const initializeMusic = async () => {
         }
     });
 
-    // --- 7. ARRANQUE ---
+    // --- 7. GRABACIONES ---
+    const recordingModalEl = document.getElementById('modalRecording');
+    if (recordingModalEl.parentNode !== document.body) document.body.appendChild(recordingModalEl);
+    const recordingModal = new bootstrap.Modal(recordingModalEl);
+
+    const dropzone = document.getElementById('dropzone-area');
+    const fileInput = document.getElementById('recording-file');
+    const feedbackEl = document.getElementById('dropzone-feedback');
+    const filenameEl = document.getElementById('dropzone-filename');
+    let currentFile = null;
+
+    const openRecordingModal = () => {
+        const form = document.getElementById('recording-form');
+        form.reset();
+        currentFile = null;
+        feedbackEl.classList.add('d-none');
+        dropzone.classList.remove('border-info', 'bg-info', 'bg-opacity-10');
+
+        // Recuperar canción actual y sus secciones
+        const song = state.songs.find(s => s.id === state.currentSongId);
+        const select = document.getElementById('recording-association');
+        
+        // Limpiar y repoblar el select
+        select.innerHTML = '<option value="song">Toda la Canción (Demo/Ensayo)</option>';
+        
+        if (song && song.sections && song.sections.length > 0) {
+            const optgroup = document.createElement('optgroup');
+            optgroup.label = "Secciones Específicas";
+            
+            song.sections.forEach(sec => {
+                const option = document.createElement('option');
+                option.value = `section_${sec.id}`; // Formato para diferenciar
+                option.textContent = `${sec.type} ${sec.bpm ? '('+sec.bpm+' bpm)' : ''}`;
+                optgroup.appendChild(option);
+            });
+            select.appendChild(optgroup);
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropzone.classList.add('border-info', 'bg-info', 'bg-opacity-10');
+            }, false);
+        });
+    
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('border-info', 'bg-info', 'bg-opacity-10');
+            }, false);
+        });
+
+        // Captura de archivo
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                currentFile = this.files[0];
+                feedbackEl.classList.remove('d-none');
+                filenameEl.textContent = `${currentFile.name} (${(currentFile.size / (1024 * 1024)).toFixed(2)} MB)`;
+            }
+        });
+    
+        // 6. Manejador de guardado
+        document.getElementById('btn-save-recording').addEventListener('click', async () => {
+            const title = document.getElementById('recording-title').value;
+            const association = document.getElementById('recording-association').value;
+            const isFileTabActive = document.getElementById('tab-upload').classList.contains('active');
+            const externalUrl = document.getElementById('recording-url').value;
+
+            if (!title) return alert("El título es obligatorio.");
+
+            let finalUrl = null;
+
+            try {
+                // Bloquear UI mientras sube (opcional pero recomendado)
+                const btn = document.getElementById('btn-save-recording');
+                btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Subiendo...`;
+                btn.disabled = true;
+
+                if (isFileTabActive) {
+                    if (!currentFile) throw new Error("Debes seleccionar un archivo.");
+                    const uploadResponse = await uploadRecordingFile(currentFile);
+                    finalUrl = uploadResponse.url; 
+                } else {
+                    if (!externalUrl) throw new Error("Debes introducir un enlace válido.");
+                    finalUrl = externalUrl;
+                }
+
+                const payload = {
+                    title: title,
+                    url: finalUrl,
+                    id_song: association === 'song' ? state.currentSongId : null,
+                    id_section: association.startsWith('section_') ? parseInt(association.split('_')[1]) : null
+                };
+
+                // Guardar en la base de datos
+                await createRecording(payload);
+                
+                // Limpiar y actualizar UI
+                recordingModal.hide();
+                await refreshSectionsForCurrentSong(); 
+
+            } catch (error) {
+                console.error(error);
+                alert(error.message || "Hubo un error en el proceso.");
+            } finally {
+                // Restaurar botón
+                const btn = document.getElementById('btn-save-recording');
+                btn.innerHTML = `<i class="bi bi-cloud-arrow-up-fill me-1"></i> Guardar`;
+                btn.disabled = false;
+            }
+        });
+
+        recordingModal.show();
+    };
+
+    // --- 8. ARRANQUE ---
     loadAlbums();
 };

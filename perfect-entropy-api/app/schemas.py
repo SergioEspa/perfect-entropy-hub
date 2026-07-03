@@ -98,20 +98,17 @@ class SectionBase(BaseModel):
     type: SectionType
     lyrics: Optional[str] = None
     chords: Optional[str] = None
+    key: Optional[str] = None
     time_signature: Optional[str] = None
     bpm: Optional[int] = None
     id_song: int
 
-class SectionOut(SectionBase):
-    id: int
-
-    class Config:
-        from_attributes = True
 
 class SectionUpdate(BaseModel):
     type: Optional[SectionType] = None
     lyrics: Optional[str] = None
     chords: Optional[str] = None
+    key: Optional[str] = None
     time_signature: Optional[str] = None
     bpm: Optional[int] = None
 
@@ -189,17 +186,27 @@ class SectionOut(BaseModel):
     id: int
     type: str
     lyrics: Optional[str]
+    key: Optional[str]
     chords: Optional[str]
+    time_signature: Optional[str]
     bpm: Optional[int]
     # Omitimos id_song por redundancia en el arbol
 
     class Config:
         from_attributes = True
 
-class RecordingOut(BaseModel):
-    id: int
+class RecordingBase(BaseModel):
+    title: str
     url: str
-    title: Optional[str]
+    id_song: Optional[int] = None
+    id_section: Optional[int] = None
+
+class RecordingCreate(RecordingBase):
+    pass
+
+class RecordingOut(RecordingBase):
+    id: int
+    date_creation: datetime
 
     class Config:
         from_attributes = True

@@ -112,7 +112,8 @@ class Section(AuditMixin, Base):
     type = Column(String, nullable=False) 
     lyrics = Column(Text)
     chords = Column(Text) 
-    time_signature = Column(String) 
+    time_signature = Column(String)
+    key = Column(String)
     bpm = Column(Integer)
     
     id_song = Column(Integer, ForeignKey("songs.id"), nullable=False)

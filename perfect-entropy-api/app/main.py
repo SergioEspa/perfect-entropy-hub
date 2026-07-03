@@ -17,12 +17,17 @@ from .dependencies import get_current_member
 from .database import engine, Base, get_db
 from . import models, schemas
 import calendar
+import os
+import shutil
+from fastapi import UploadFile, File, Form
+from fastapi.staticfiles import StaticFiles
 
 GLOBAL_PASS = os.getenv("BAND_PASSWORD")
 # Le ponemos un fallback por si tu archivo .env no tiene la variable escrita exactamente igual
 JWT_SECRET = os.getenv("JWT_SECRET", "super_secreto_desarrollo_perfect_entropy") 
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_DAYS = 7
+
 
 # Lifespan: Código que se ejecuta al arrancar
 @asynccontextmanager
@@ -32,6 +37,10 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(title="Perfect Entropy API", version="1.0.0", lifespan=lifespan)
+
+UPLOAD_DIR = "uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 # CORS
 app.add_middleware(
@@ -528,3 +537,29 @@ async def get_sections_for_song(
         )
     )
     return sections_result.scalars().all()
+
+@app.post("/api/recordings/upload")
+async def upload_recording_file(
+    file: UploadFile = File(...),
+    current_member_id: int = Depends(get_current_member)
+):
+    # Generar un nombre único para evitar colisiones entre vosotros
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    safe_filename = f"{timestamp}_{file.filename.replace(' ', '_')}"
+    file_path = os.path.join(UPLOAD_DIR, safe_filename)
+    
+    # Guardar en disco duro
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+        
+    return {"url": f"/uploads/{safe_filename}"}
+
+@app.post("/api/recordings", response_model=schemas.RecordingOut)
+async def create_recording(
+    recording_data: schemas.RecordingBase, # Necesitarás añadir este schema en schemas.py
+    current_member_id: int = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db)
+):
+    new_recording = models.Recording(**recording_data.model_dump())
+    await new_recording.create(session=db, creator_id=current_member_id)
+    return new_recording

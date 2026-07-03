@@ -1,20 +1,23 @@
-<div class="container-fluid h-100 p-3">
+<!-- Sustituye la parte superior de music.html por esto: -->
+<div class="container-fluid px-0" style="height: calc(100vh - 120px);">
     <div class="row h-100 g-3">
         
-        <div class="col-md-3 d-flex flex-column h-100">
-            <div class="card bg-dark border-secondary shadow-sm flex-grow-1">
-                <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+        <!-- COLUMNA 1: ÁLBUMES -->
+        <div class="col-md-3 h-100">
+            <div class="card bg-dark border-secondary shadow-sm h-100 overflow-hidden">
+                <div class="card-header border-secondary d-flex justify-content-between align-items-center flex-shrink-0">
                     <h6 class="mb-0 text-info font-monospace fw-bold"><i class="bi bi-disc text-info me-2"></i>Álbumes</h6>
                     <button class="btn btn-sm btn-outline-info rounded-circle" id="btn-new-album"><i class="bi bi-plus"></i></button>
                 </div>
                 <div class="card-body overflow-auto p-0" id="album-list">
-                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="col-md-4 d-flex flex-column h-100">
-            <div class="card bg-dark border-secondary shadow-sm flex-grow-1">
-                <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+        <!-- COLUMNA 2: CANCIONES -->
+        <div class="col-md-4 h-100">
+            <div class="card bg-dark border-secondary shadow-sm h-100 overflow-hidden">
+                <div class="card-header border-secondary d-flex justify-content-between align-items-center flex-shrink-0">
                     <h6 class="mb-0 text-light font-monospace fw-bold"><i class="bi bi-music-note-list me-2"></i>Canciones</h6>
                     <button class="btn btn-sm btn-outline-light rounded-circle" id="btn-add-song" disabled><i class="bi bi-plus"></i></button>
                 </div>
@@ -24,10 +27,11 @@
             </div>
         </div>
 
-        <div class="col-md-5 d-flex flex-column h-100">
-            <div class="card bg-dark border-secondary shadow-sm flex-grow-1">
-                <div class="card-header border-secondary d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 text-warning font-monospace fw-bold" id="detail-title"><i class="bi bi-sliders me-2"></i>Laboratorio</h6>
+        <!-- COLUMNA 3: SECCIONES (Esta es la que más crecerá) -->
+        <div class="col-md-5 h-100">
+            <div class="card bg-dark border-secondary shadow-sm h-100 overflow-hidden">
+                <div class="card-header border-secondary d-flex justify-content-between align-items-center flex-shrink-0">
+                    <h6 class="mb-0 text-warning font-monospace fw-bold" id="detail-title"><i class="bi bi-sliders me-2"></i>Secciones</h6>
                 </div>
                 <div class="card-body overflow-auto p-3" id="song-details">
                     <div class="text-center text-secondary mt-5 small">Selecciona una canción para ver sus secciones y grabaciones</div>
@@ -37,41 +41,6 @@
 
     </div>
 </div>
-
-<!-- <div class="modal fade" id="modalSong" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content bg-dark border-secondary text-light">
-            <div class="modal-header border-secondary">
-                <h5 class="modal-title font-monospace fw-bold text-light">Nueva Idea de Canción</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="form-song">
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-secondary">TÍTULO</label>
-                        <input type="text" id="song-title" class="form-control bg-dark text-light border-secondary" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-secondary">ESTADO</label>
-                        <select id="song-status" class="form-select bg-dark text-light border-secondary">
-                            <option value="IDEA">Idea inicial</option>
-                            <option value="COMPOSICION">En composición</option>
-                            <option value="GRABACION">Grabando</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-secondary">NOTAS</label>
-                        <textarea id="song-desc" class="form-control bg-dark text-light border-secondary" rows="3"></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer border-secondary">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-light fw-bold" id="btn-save-song">Guardar</button>
-            </div>
-        </div>
-    </div>
-</div> -->
 
 <div class="modal fade" id="modalAlbum" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -197,16 +166,52 @@
             </div>
             <div class="modal-body">
                 <form id="section-form">
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-secondary mb-1">TIPO</label>
-                        <select id="section-type" class="form-select bg-dark text-light border-secondary" required>
-                            <option value="INTRO">Intro</option>
-                            <option value="VERSO">Verso</option>
-                            <option value="ESTRIBILLO">Estribillo</option>
-                            <option value="SOLO">Solo</option>
-                            <option value="PUENTE">Puente</option>
-                            <option value="OUTRO">Outro</option>
-                        </select>
+                    <div class="row g-2 mb-3">
+                        <!-- TIPO -->
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold text-secondary mb-1">TIPO</label>
+                            <select id="section-type" class="form-select bg-dark text-light border-secondary" required>
+                                <option value="INTRO">Intro</option>
+                                <option value="VERSO">Verso</option>
+                                <option value="ESTRIBILLO">Estribillo</option>
+                                <option value="SOLO">Solo</option>
+                                <option value="PUENTE">Puente</option>
+                                <option value="OUTRO">Outro</option>
+                            </select>
+                        </div>
+
+                        <!-- TONALIDAD -->
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-secondary mb-1">TONALIDAD</label>
+                            <select id="section-key" class="form-select bg-dark text-light border-secondary" required>
+                                <option value="C">C</option>
+                                <option value="C#/Db">C#/Db</option>
+                                <option value="D">D</option>
+                                <option value="D#/Eb">D#/Eb</option>
+                                <option value="E">E</option>
+                                <option value="F">F</option>
+                                <option value="F#/Gb">F#/Gb</option>
+                                <option value="G">G</option>
+                                <option value="G#/Ab">G#/Ab</option>
+                                <option value="A">A</option>
+                                <option value="A#/Bb">A#/Bb</option>
+                                <option value="B">B</option>
+                            </select>
+                        </div>
+
+                        <!-- MODO -->
+                        <div class="col-md-5">
+                            <label class="form-label small fw-bold text-secondary mb-1">MODO</label>
+                            <select id="section-mode" class="form-select bg-dark text-light border-secondary" required>
+                                <option value="ionian">Mayor (Jónico)</option>
+                                <option value="dorian">Dórico</option>
+                                <option value="phrygian">Frigio</option>
+                                <option value="lydian">Lidio</option>
+                                <option value="mixolydian">Mixolidio</option>
+                                <option value="aeolian">Menor (Eólico)</option>
+                                <option value="locrian">Locrio</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-6">
@@ -223,7 +228,7 @@
                         <input type="text" id="section-chords" class="form-control bg-dark text-light border-secondary font-monospace" placeholder="Em - C - G - D">
                     </div>
                     <div class="mb-2">
-                        <label class="form-label small fw-bold text-secondary mb-1">LETRA</label>
+                        <label class="form-label small fw-bold text-secondary mb-1">LETRA/DESCRIPCIÓN</label>
                         <textarea id="section-lyrics" class="form-control bg-dark text-light border-secondary shadow-sm" rows="4"></textarea>
                     </div>
                 </form>
@@ -253,6 +258,75 @@
                 <button type="button" class="btn btn-outline-secondary me-auto" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-danger fw-bold" id="btn-confirm-delete-section">
                     <i class="bi bi-trash-fill me-1"></i> Confirmar Destrucción
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalRecording" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-secondary text-light">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title font-monospace fw-bold text-info">
+                    <i class="bi bi-mic-fill px-2"></i>Añadir Grabación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="recording-form">
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary mb-1">TÍTULO DE LA TOMA</label>
+                        <input type="text" id="recording-title" class="form-control bg-dark text-light border-secondary" placeholder="Ej. Solo toma 2, Ensayo general..." required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-secondary mb-1">ASOCIAR A</label>
+                        <select id="recording-association" class="form-select bg-dark text-light border-secondary">
+                            <option value="song">Toda la Canción (Demo/Ensayo)</option>
+                            <!-- Las opciones de secciones se inyectarán aquí con JS -->
+                        </select>
+                    </div>
+
+                    <!-- Pestañas para Híbrido: Archivo o Enlace -->
+                    <ul class="nav nav-tabs border-secondary mb-3" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active bg-transparent text-info border-secondary border-bottom-0" data-bs-toggle="tab" data-bs-target="#tab-upload" type="button" role="tab">Subir Archivo</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link bg-transparent text-secondary border-secondary border-bottom-0" data-bs-toggle="tab" data-bs-target="#tab-link" type="button" role="tab">Enlace Externo</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <!-- PANEL DROPZONE -->
+                        <div class="tab-pane fade show active" id="tab-upload" role="tabpanel">
+                            <div id="dropzone-area" class="border border-2 border-dashed border-secondary rounded p-4 text-center position-relative cursor-pointer transition-all" style="background-color: rgba(255,255,255,0.02);">
+                                <input type="file" id="recording-file" class="position-absolute w-100 h-100 top-0 start-0 opacity-0 cursor-pointer" accept="audio/*,video/*">
+                                <i class="bi bi-cloud-arrow-up fs-1 text-secondary mb-2"></i>
+                                <h6 class="text-light mb-1">Arrastra tu archivo aquí</h6>
+                                <p class="small text-secondary mb-0">o haz clic para buscar (Max 50MB)</p>
+                                <!-- Contenedor de archivo seleccionado -->
+                                <div id="dropzone-feedback" class="mt-3 d-none">
+                                    <span class="badge bg-info text-dark w-100 text-truncate" id="dropzone-filename">archivo.mp3</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PANEL ENLACE -->
+                        <div class="tab-pane fade" id="tab-link" role="tabpanel">
+                            <label class="form-label small fw-bold text-secondary mb-1">URL (Drive, YouTube, Soundcloud)</label>
+                            <input type="url" id="recording-url" class="form-control bg-dark text-light border-secondary" placeholder="https://...">
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-info fw-bold" id="btn-save-recording">
+                    <i class="bi bi-cloud-arrow-up-fill me-1"></i> Guardar
                 </button>
             </div>
         </div>
