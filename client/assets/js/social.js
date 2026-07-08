@@ -36,7 +36,7 @@ export const initializeSocial = async () => {
             <div class="accordion-item bg-transparent border-0 border-bottom border-secondary">
                 <div class="accordion-header d-flex align-items-stretch">
                     <button class="btn btn-link text-decoration-none text-light flex-grow-1 text-start p-3 fw-bold rounded-0 select-target ${state.context.type === 'band' ? 'bg-info bg-opacity-10 text-info border-start border-3 border-info' : ''}" data-type="band" data-id="global" data-name="Perfect Entropy">
-                        <i class="bi bi-stars me-2 text-warning"></i>Perfect Entropy
+                        Perfect Entropy
                     </button>
                 </div>
             </div>
