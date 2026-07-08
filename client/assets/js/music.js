@@ -327,7 +327,8 @@ export const initializeMusic = async () => {
     };
 
     const openSongModal = (song = null) => {
-        console.log("SONG MODAL")
+        console.log("SONG MODAL");
+        state.currentSongId = song ? song.id : null;
         const form = document.getElementById('song-form');
         form.reset();
 
