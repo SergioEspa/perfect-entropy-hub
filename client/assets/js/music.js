@@ -327,8 +327,6 @@ export const initializeMusic = async () => {
     };
 
     const openSongModal = (song = null) => {
-        console.log("SONG MODAL");
-        state.currentSongId = song ? song.id : null;
         const form = document.getElementById('song-form');
         form.reset();
 
@@ -340,9 +338,11 @@ export const initializeMusic = async () => {
             document.getElementById('song-title').value = song.title;
             document.getElementById('song-status').value = song.status;
             document.getElementById('song-desc').value = song.description || '';
+            state.editingSongId = song.id;
             deleteTrigger.style.display = 'block'; 
         } else {
             titleEl.innerHTML = `<i class="bi bi-music-note-beamed px-2"></i>Nueva Canción`;
+            state.editingSongId = null;
             deleteTrigger.style.display = 'none';
         }
         songModal.show();
@@ -601,7 +601,6 @@ export const initializeMusic = async () => {
             return;
         }
 
-        // FIX 3: Añadidos status e id_album al payload — antes solo se enviaban title y description
         const payload = {
             title: document.getElementById('song-title').value,
             description: document.getElementById('song-desc').value,
@@ -610,11 +609,8 @@ export const initializeMusic = async () => {
         };
 
         try {
-            const isEdit = document.getElementById('song-modal-title').textContent.includes('Editar');
-            console.log("ISEDIT:",isEdit);
-            console.log("SONG ID:",state.currentSongId)
-            if (isEdit && state.currentSongId) {
-                await updateSong(state.currentSongId, payload);
+            if (state.editingSongId) {
+                await updateSong(state.editingSongId, payload);
             } else {
                 await createSong(payload);
             }
@@ -641,14 +637,13 @@ export const initializeMusic = async () => {
             await deleteSong(state.currentSongId);
             deleteSongModal.hide();
             
-            state.currentSongId = null;
+            if (state.currentSongId === state.editingSongId) {
+                state.currentSongId = null;
+                DOM.songDetails.innerHTML = '<div class="text-center text-secondary mt-5 small">Selecciona una canción para ver sus secciones y grabaciones</div>';
+                DOM.detailTitle.innerHTML = `<i class="bi bi-sliders me-2"></i>Laboratorio`;
+            }
 
-            // FIX 4a: DOM.sectionList y DOM.sectionDetails no existen → corregido a songDetails y detailTitle
-            // FIX 4b: No deshabilitamos btnAddSong porque el álbum sigue seleccionado
-            // FIX 4c: Mensaje de error corregido de "álbum" a "canción"
-            DOM.songDetails.innerHTML = '<div class="text-center text-secondary mt-5 small">Selecciona una canción para ver sus secciones y grabaciones</div>';
-            DOM.detailTitle.innerHTML = `<i class="bi bi-sliders me-2"></i>Laboratorio`;
-
+            state.editingSongId = null;
             await loadSongs();
         } catch (error) {
             alert("No se pudo eliminar la canción.");
