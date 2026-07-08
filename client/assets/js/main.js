@@ -50,6 +50,8 @@ async function loadPage(pageName, title) {
         }
         else if (pageName === 'concept.html') {
             document.getElementById('page-title').innerHTML = `<i class="bi bi-lightbulb-fill me-2 text-info"></i> Conceptos`;
+            const { initializeConcept } = await import('./concept.js');
+            initializeConcept();
         }
         else if (pageName === 'music.html') {
             document.getElementById('page-title').innerHTML = `<i class="bi bi-music-note-beamed me-2 text-info"></i> Nuestra música`;
@@ -58,6 +60,8 @@ async function loadPage(pageName, title) {
         }
         else if (pageName === 'social.html') {
             document.getElementById('page-title').innerHTML = `<i class="bi bi-people-fill me-2 text-info"></i> Redes Sociales`;
+            const { initializeSocial } = await import('./social.js');
+            initializeSocial();
         }
     } catch (error) {
         contentArea.innerHTML = `

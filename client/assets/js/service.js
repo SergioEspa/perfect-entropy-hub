@@ -276,3 +276,101 @@ export async function createRecording(payload) {
     if (!response.ok) throw new Error("Error guardando el registro de la grabación");
     return await response.json();
 }
+
+// --- FUNCIONES REDES SOCIALES ---
+
+export async function getPostsByAlbum(albumId) {
+    const response = await fetch(`${CONFIG.API_URL}/api/posts/album/${albumId}`, { headers: getAuthHeaders() });
+    if (!response.ok) throw new Error("Error obteniendo posts del álbum");
+    return await response.json();
+}
+
+export async function getPostsBySong(songId) {
+    const response = await fetch(`${CONFIG.API_URL}/api/posts/song/${songId}`, { headers: getAuthHeaders() });
+    if (!response.ok) throw new Error("Error obteniendo posts de la canción");
+    return await response.json();
+}
+
+export async function createPost(payload) {
+    const response = await fetch(`${CONFIG.API_URL}/api/posts`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload)
+    });
+    if (!response.ok) throw new Error("Error creando post");
+    return await response.json();
+}
+
+export async function updatePost(postId, payload) {
+    const response = await fetch(`${CONFIG.API_URL}/api/posts/${postId}`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload)
+    });
+    if (!response.ok) throw new Error("Error actualizando post");
+    return await response.json();
+}
+
+export async function deletePost(postId) {
+    const response = await fetch(`${CONFIG.API_URL}/api/posts/${postId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+    });
+    if (!response.ok) throw new Error("Error eliminando post");
+    return await response.json();
+}
+
+export async function getGlobalPosts() {
+    const response = await fetch(`${CONFIG.API_URL}/api/posts/global`, { headers: getAuthHeaders() });
+    if (!response.ok) throw new Error("Error obteniendo posts de la banda");
+    return await response.json();
+}
+
+// --- FUNCIONES CONCEPTOS / LORE ---
+
+export async function getConceptsByAlbum(albumId) {
+    const response = await fetch(`${CONFIG.API_URL}/api/concepts/album/${albumId}`, { headers: getAuthHeaders() });
+    if (!response.ok) throw new Error("Error obteniendo conceptos del álbum");
+    return await response.json();
+}
+
+export async function getConceptsBySong(songId) {
+    const response = await fetch(`${CONFIG.API_URL}/api/concepts/song/${songId}`, { headers: getAuthHeaders() });
+    if (!response.ok) throw new Error("Error obteniendo conceptos de la canción");
+    return await response.json();
+}
+
+export async function createConcept(payload) {
+    const response = await fetch(`${CONFIG.API_URL}/api/concepts`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload)
+    });
+    if (!response.ok) throw new Error("Error creando concepto");
+    return await response.json();
+}
+
+export async function updateConcept(conceptId, payload) {
+    const response = await fetch(`${CONFIG.API_URL}/api/concepts/${conceptId}`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload)
+    });
+    if (!response.ok) throw new Error("Error actualizando concepto");
+    return await response.json();
+}
+
+export async function deleteConcept(conceptId) {
+    const response = await fetch(`${CONFIG.API_URL}/api/concepts/${conceptId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+    });
+    if (!response.ok) throw new Error("Error eliminando concepto");
+    return await response.json();
+}
+
+export async function getGlobalConcepts() {
+    const response = await fetch(`${CONFIG.API_URL}/api/concepts/global`, { headers: getAuthHeaders() });
+    if (!response.ok) throw new Error("Error obteniendo conceptos de la banda");
+    return await response.json();
+}

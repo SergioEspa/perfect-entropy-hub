@@ -78,20 +78,32 @@ export const initializeMusic = async () => {
 
     // --- 4. RENDERIZADORES ---
     const renderAlbums = () => {
-        DOM.albumList.innerHTML = '<div class="list-group list-group-flush">' + 
+        // Inicializamos el contenedor como un acordeón oscuro
+        DOM.albumList.innerHTML = '<div class="accordion accordion-flush" id="albumsAccordion" data-bs-theme="dark">' + 
             state.albums.map(a => {
                 const isActive = a.id === state.currentAlbumId;
+                
                 return `
-                <div class="list-group-item list-group-item-action bg-transparent text-light border-secondary py-3 album-item d-flex justify-content-between align-items-center ${isActive ? 'active bg-info bg-opacity-10 border-start border-1 border-info' : ''}" data-id="${a.id}">
+                <div class="accordion-item bg-transparent border-secondary border-bottom album-item" data-id="${a.id}">
                     
-                    <div class="cursor-pointer flex-grow-1 select-album-zone">
-                        <div class="fw-bold">${a.title}</div>
-                        <small class="text-secondary text-truncate d-block" style="max-width: 200px;">${a.description || 'Sin descripción'}</small>
+                    <h2 class="accordion-header d-flex align-items-center ${isActive ? 'bg-info bg-opacity-10 border-start border-2 border-info' : ''}">
+                        <!-- El botón actúa como expansor Y como zona de selección -->
+                        <button class="accordion-button collapsed bg-transparent text-light shadow-none p-3 select-album-zone" type="button" data-bs-toggle="collapse" data-bs-target="#album-${a.id}">
+                            <span class="fw-bold">${a.title}</span>
+                        </button>
+                        
+                        <!-- Botón de edición protegido de solapamientos -->
+                        <button class="btn btn-sm btn-link text-info p-2 me-2 edit-album-trigger position-relative" style="z-index: 3;" title="Editar Álbum">
+                            <i class="bi bi-gear-fill"></i>
+                        </button>
+                    </h2>
+                    
+                    <!-- Contenedor colapsable para la descripción -->
+                    <div id="album-${a.id}" class="accordion-collapse collapse" data-bs-parent="#albumsAccordion">
+                        <div class="accordion-body text-secondary small pt-1 pb-3 px-3">
+                            ${a.description ? `${a.description}` : '<i class="fst-italic opacity-50">Sin descripción</i>'}
+                        </div>
                     </div>
-
-                    <button class="btn btn-sm btn-link text-info p-0 edit-album-trigger" title="Editar Configuración">
-                        <i class="bi bi-gear-fill"></i>
-                    </button>
                     
                 </div>`;
             }).join('') + '</div>';
@@ -209,13 +221,23 @@ export const initializeMusic = async () => {
                     }
                 }
                 // 3. Enlace de Google Drive
-                else if (url.includes('drive.google.com/file/d/')) {
-                    // Extraer el ID para usar el reproductor nativo de Drive
-                    const fileId = url.split('/d/')[1].split('/')[0];
-                    mediaContent = `
-                        <div class="ratio ratio-16x9 mt-2 border border-secondary rounded overflow-hidden">
-                            <iframe src="https://drive.google.com/file/d/${fileId}/preview" allowfullscreen></iframe>
-                        </div>`;
+                else if (url.includes('drive.google.com')) {
+                    // Captura el ID de los dos formatos estándar de Drive
+                    const match = url.match(/(?:file\/d\/|id=)([\w-]+)/);
+                    
+                    if (match && match[1]) {
+                        const fileId = match[1];
+                        mediaContent = `
+                            <div class="ratio ratio-16x9 mt-2 border border-secondary rounded overflow-hidden">
+                                <iframe src="https://drive.google.com/file/d/${fileId}/preview" allowfullscreen></iframe>
+                            </div>`;
+                    } else {
+                        // Fallback si es un enlace de Drive rarísimo o de carpeta
+                        mediaContent = `
+                            <a href="${url}" target="_blank" class="btn btn-sm btn-outline-info w-100 mt-2">
+                                <i class="bi bi-google"></i> Abrir en Google Drive
+                            </a>`;
+                    }
                 }
                 // 4. Fallback: URL genérica (Soundcloud, Dropbox, etc)
                 else {
@@ -688,12 +710,28 @@ export const initializeMusic = async () => {
         // Captura de archivo
         fileInput.addEventListener('change', function() {
             if (this.files && this.files[0]) {
-                currentFile = this.files[0];
-                feedbackEl.classList.remove('d-none');
-                filenameEl.textContent = `${currentFile.name} (${(currentFile.size / (1024 * 1024)).toFixed(2)} MB)`;
+                handleFileSelection(this.files[0]);
             }
         });
-    
+        
+        const handleFileSelection = (file) => {
+            // Definimos las extensiones multimedia permitidas para el local/maquetas
+            const allowedExtensions = /(\.mp3|\.wav|\.m4a|\.flac)$/i;
+            
+            if (!allowedExtensions.exec(file.name)) {
+                alert("¡Formato no soportado! Por favor, sube solo archivos de audio (mp3, wav, m4a, flac).");
+                fileInput.value = '';
+                currentFile = null;
+                feedbackEl.classList.add('d-none');
+                return;
+            }
+
+            // Si pasa el filtro, guardamos en el estado del componente
+            currentFile = file;
+            feedbackEl.classList.remove('d-none');
+            filenameEl.textContent = `${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+        };
+
         // 6. Manejador de guardado
         document.getElementById('btn-save-recording').addEventListener('click', async () => {
             const title = document.getElementById('recording-title').value;
@@ -723,7 +761,7 @@ export const initializeMusic = async () => {
                 const payload = {
                     title: title,
                     url: finalUrl,
-                    id_song: association === 'song' ? state.currentSongId : null,
+                    id_song: state.currentSongId,
                     id_section: association.startsWith('section_') ? parseInt(association.split('_')[1]) : null
                 };
 

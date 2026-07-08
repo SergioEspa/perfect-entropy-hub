@@ -45,12 +45,15 @@ app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Para desarrollo es más cómodo
+    allow_origins=[
+        "https://perfectentropy.duckdns.org",
+        "http://localhost:5500",             
+        "://127.0.0.1:5500"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 # Endpoint Health
 @app.get("/api/health")
 async def health_check():
@@ -563,3 +566,149 @@ async def create_recording(
     new_recording = models.Recording(**recording_data.model_dump())
     await new_recording.create(session=db, creator_id=current_member_id)
     return new_recording
+
+# --- ENDPOINTS REDES SOCIALES ---
+
+@app.get("/api/posts/album/{album_id}", response_model=list[schemas.PostIdeaOut])
+async def get_posts_by_album(album_id: int, current_member_id: int = Depends(get_current_member), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(models.PostIdea).where(
+            models.PostIdea.id_album == album_id,
+            models.PostIdea.id_song.is_(None), # Solo ideas del álbum genérico, no de sus canciones
+            models.PostIdea.flag_disabled == False
+        )
+    )
+    return result.scalars().all()
+
+@app.get("/api/posts/song/{song_id}", response_model=list[schemas.PostIdeaOut])
+async def get_posts_by_song(song_id: int, current_member_id: int = Depends(get_current_member), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(models.PostIdea).where(
+            models.PostIdea.id_song == song_id,
+            models.PostIdea.flag_disabled == False
+        )
+    )
+    return result.scalars().all()
+
+@app.post("/api/posts", response_model=schemas.PostIdeaOut)
+async def create_post(
+    post_data: schemas.PostIdeaCreate,
+    current_member_id: int = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db)
+):
+    new_post = models.PostIdea(**post_data.model_dump())
+    await new_post.create(session=db, creator_id=current_member_id)
+    return new_post
+
+@app.patch("/api/posts/{post_id}", response_model=schemas.PostIdeaOut)
+async def update_post(
+    post_id: int,
+    post_data: schemas.PostIdeaUpdate,
+    current_member_id: int = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(models.PostIdea).where(models.PostIdea.id == post_id))
+    post = result.scalars().first()
+    if not post:
+        raise HTTPException(status_code=404, detail="Idea no encontrada")
+
+    for key, value in post_data.model_dump(exclude_unset=True).items():
+        setattr(post, key, value)
+
+    await db.commit()
+    await db.refresh(post)
+    return post
+
+@app.delete("/api/posts/{post_id}")
+async def delete_post(post_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(models.PostIdea).where(models.PostIdea.id == post_id))
+    post = result.scalars().first()
+    if not post:
+        raise HTTPException(status_code=404, detail="Idea no encontrada")
+    
+    await post.disable(session=db)
+    return {"status": "success"}
+
+# --- ENDPOINTS CONCEPTOS / LORE ---
+
+@app.get("/api/concepts/album/{album_id}", response_model=list[schemas.ConceptIdeaOut])
+async def get_concepts_by_album(album_id: int, current_member_id: int = Depends(get_current_member), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(models.ConceptIdea).where(
+            models.ConceptIdea.id_album == album_id,
+            models.ConceptIdea.id_song.is_(None), # Solo conceptos a nivel de álbum
+            models.ConceptIdea.flag_disabled == False
+        )
+    )
+    return result.scalars().all()
+
+@app.get("/api/concepts/song/{song_id}", response_model=list[schemas.ConceptIdeaOut])
+async def get_concepts_by_song(song_id: int, current_member_id: int = Depends(get_current_member), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(models.ConceptIdea).where(
+            models.ConceptIdea.id_song == song_id,
+            models.ConceptIdea.flag_disabled == False
+        )
+    )
+    return result.scalars().all()
+
+@app.post("/api/concepts", response_model=schemas.ConceptIdeaOut)
+async def create_concept(
+    concept_data: schemas.ConceptIdeaCreate,
+    current_member_id: int = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db)
+):
+    new_concept = models.ConceptIdea(**concept_data.model_dump())
+    await new_concept.create(session=db, creator_id=current_member_id)
+    return new_concept
+
+@app.patch("/api/concepts/{concept_id}", response_model=schemas.ConceptIdeaOut)
+async def update_concept(
+    concept_id: int,
+    concept_data: schemas.ConceptIdeaUpdate,
+    current_member_id: int = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(models.ConceptIdea).where(models.ConceptIdea.id == concept_id))
+    concept = result.scalars().first()
+    if not concept:
+        raise HTTPException(status_code=404, detail="Concepto no encontrado")
+
+    for key, value in concept_data.model_dump(exclude_unset=True).items():
+        setattr(concept, key, value)
+
+    await db.commit()
+    await db.refresh(concept)
+    return concept
+
+@app.delete("/api/concepts/{concept_id}")
+async def delete_concept(concept_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(models.ConceptIdea).where(models.ConceptIdea.id == concept_id))
+    concept = result.scalars().first()
+    if not concept:
+        raise HTTPException(status_code=404, detail="Concepto no encontrado")
+    
+    await concept.disable(session=db)
+    return {"status": "success"}
+
+@app.get("/api/concepts/global", response_model=list[schemas.ConceptIdeaOut])
+async def get_global_concepts(current_member_id: int = Depends(get_current_member), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(models.ConceptIdea).where(
+            models.ConceptIdea.id_album.is_(None),
+            models.ConceptIdea.id_song.is_(None),
+            models.ConceptIdea.flag_disabled == False
+        )
+    )
+    return result.scalars().all()
+
+@app.get("/api/posts/global", response_model=list[schemas.PostIdeaOut])
+async def get_global_posts(current_member_id: int = Depends(get_current_member), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(models.PostIdea).where(
+            models.PostIdea.id_album.is_(None),
+            models.PostIdea.id_song.is_(None),
+            models.PostIdea.flag_disabled == False
+        )
+    )
+    return result.scalars().all()

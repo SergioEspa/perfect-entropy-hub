@@ -112,34 +112,6 @@ class SectionUpdate(BaseModel):
     time_signature: Optional[str] = None
     bpm: Optional[int] = None
 
-# ==========================================
-# SCHEMAS DE CONCEPTO Y SOCIAL
-# ==========================================
-class ConceptIdeaOut(BaseModel):
-    id: int
-    title: str
-    description: Optional[str] = None
-    status: ConceptStatus
-    id_album: Optional[int] = None
-    id_song: Optional[int] = None
-    created_by: int
-
-    class Config:
-        from_attributes = True
-
-class PostIdeaOut(BaseModel):
-    id: int
-    title: str
-    template_url: Optional[str] = None
-    status: PostStatus
-    created_by: int
-
-    class Config:
-        from_attributes = True
-
-# ==========================================
-# SCHEMAS DE CALENDARIO
-# ==========================================
 class EventBase(BaseModel):
     title: str
     start_time: datetime
@@ -219,6 +191,60 @@ class SongDetailOut(BaseModel):
     id_album: int
     sections: List[SectionOut] = []
     recordings: List[RecordingOut] = []
+
+    class Config:
+        from_attributes = True
+        
+# ==========================================
+# SCHEMAS DE REDES SOCIALES
+# ==========================================
+class PostIdeaBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    template_url: Optional[str] = None
+    status: PostStatus = PostStatus.PENDIENTE
+    id_album: Optional[int] = None
+    id_song: Optional[int] = None
+
+class PostIdeaCreate(PostIdeaBase):
+    pass
+
+class PostIdeaUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    template_url: Optional[str] = None
+    status: Optional[PostStatus] = None
+
+class PostIdeaOut(PostIdeaBase):
+    id: int
+    date_creation: datetime
+    created_by: int
+
+    class Config:
+        from_attributes = True
+        
+# ==========================================
+# SCHEMAS DE CONCEPTO Y LORE
+# ==========================================
+class ConceptIdeaBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    status: ConceptStatus = ConceptStatus.BORRADOR
+    id_album: Optional[int] = None
+    id_song: Optional[int] = None
+
+class ConceptIdeaCreate(ConceptIdeaBase):
+    pass
+
+class ConceptIdeaUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[ConceptStatus] = None
+
+class ConceptIdeaOut(ConceptIdeaBase):
+    id: int
+    date_creation: datetime
+    created_by: int
 
     class Config:
         from_attributes = True

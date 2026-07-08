@@ -1,0 +1,100 @@
+<!-- container-fluid px-0 y height exacto para bloquear el scroll global (como en music) -->
+<div class="container-fluid px-0 border-top border-secondary" style="height: calc(100vh - 120px);">
+    <div class="row h-100 g-0"> <!-- g-0 elimina el espaciado entre columnas -->
+        
+        <!-- COLUMNA IZQUIERDA: Árbol de Navegación -->
+        <div class="col-md-3 h-100 bg-dark border-end border-secondary overflow-y-scroll d-flex flex-column">
+            <div class="p-3 border-bottom border-secondary position-sticky top-0 bg-dark z-1">
+                <h6 class="mb-0 text-info font-monospace fw-bold"><i class="bi bi-funnel text-info me-2"></i>Filtrar por Proyecto</h6>
+            </div>
+            
+            <div class="p-0 accordion accordion-flush" id="tree-container" data-bs-theme="dark">
+                <!-- Aquí se inyectan los álbumes y canciones -->
+            </div>
+        </div>
+
+        <!-- COLUMNA DERECHA: Ideas de Posts -->
+        <div class="col-md-9 h-100 bg-black overflow-y-scroll d-flex flex-column relative">
+            <div class="p-3 border-bottom border-secondary d-flex justify-content-between align-items-center position-sticky top-0 bg-black z-1">
+                <h6 class="mb-0 text-light font-monospace fw-bold" id="social-header-title">
+                    <i class="bi bi-share me-2 text-secondary"></i>Selecciona un objetivo
+                </h6>
+                <button class="btn btn-sm btn-info rounded-pill px-3 fw-bold" id="btn-add-post" disabled>
+                    <i class="bi bi-plus-lg me-1"></i>Añadir Idea
+                </button>
+            </div>
+            
+            <div class="p-4" id="posts-container">
+                <div class="text-center text-secondary mt-5 small">Navega por los álbumes o canciones en el panel izquierdo para ver sus ideas de promoción.</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- MODAL: CREAR/EDITAR POST -->
+<div class="modal fade" id="modalPost" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-secondary text-light">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title font-monospace fw-bold text-info" id="post-modal-title">
+                    <i class="bi bi-pencil-square px-2"></i>Idea de Promoción
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="post-form">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary mb-1">TÍTULO / CONCEPTO</label>
+                        <input type="text" id="post-title" class="form-control bg-dark text-light border-secondary" placeholder="Ej. Reel de grabación de guitarras..." required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary mb-1">ESTADO</label>
+                        <select id="post-status" class="form-select bg-dark text-light border-secondary">
+                            <option value="PENDIENTE">Pendiente</option>
+                            <option value="PROGRAMADO">Programado / Grabando</option>
+                            <option value="PUBLICADO">Publicado</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary mb-1">ENLACE AL TEMPLATE / REFERENCIA (Opcional)</label>
+                        <input type="url" id="post-template" class="form-control bg-dark text-light border-secondary" placeholder="https://instagram.com/reel/...">
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold text-secondary mb-1">COPY / DESCRIPCIÓN</label>
+                        <textarea id="post-desc" class="form-control bg-dark text-light border-secondary shadow-sm" rows="5" placeholder="El texto que acompañará a la publicación, hashtags, ideas para el vídeo..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-danger me-auto" id="btn-delete-post-trigger" style="display: none;">Borrar</button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-info fw-bold" id="btn-save-post">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: ELIMINAR POST -->
+<div class="modal fade" id="confirmDeletePost" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-secondary text-light">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title font-monospace fw-bold text-danger">
+                    <i class="bi bi-trash-fill px-2"></i>¿Eliminar Idea?
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Vas a eliminar esta idea de publicación de forma definitiva.
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-secondary me-auto" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger fw-bold" id="btn-confirm-delete-post">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
