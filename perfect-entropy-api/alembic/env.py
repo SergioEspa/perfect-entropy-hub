@@ -47,13 +47,20 @@ def do_run_migrations(connection: Connection) -> None:
         context.run_migrations()
 
 async def run_async_migrations() -> None:
-    connectable = async_engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
+    from sqlalchemy.ext.asyncio import create_async_engine
+    
+    db_url = os.getenv("DATABASE_URL")
+    if not db_url:
+        raise RuntimeError("La variable de entorno DATABASE_URL no está definida.")
+
+    connectable = create_async_engine(
+        db_url,
         poolclass=pool.NullPool,
     )
+
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)
+        
     await connectable.dispose()
 
 def run_migrations_online() -> None:
