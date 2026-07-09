@@ -18,6 +18,8 @@ from app import models
 
 # Configuración básica de Alembic
 config = context.config
+if os.getenv("DATABASE_URL"):
+    config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL"))
 
 # 3. Inyectar la URL de la base de datos desde el .env dinámicamente
 config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL"))
