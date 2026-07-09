@@ -3,3 +3,22 @@ perfect-entropy-api/.venv
 perfect-entropy-api/__pycache__
 **/__pycache__/
 *.pyc
+
+# Secretos y variables de entorno
+.env
+.env.*
+
+# Cachés de Python (El origen de tus conflictos de git pull)
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Entornos virtuales (por si en local usas venv)
+venv/
+env/
+.venv/
+
+# Archivos multimedia de la aplicación
+uploads/
+perfect-entropy-api/uploads/
