@@ -90,6 +90,7 @@ class SongUpdate(SongBase):
 class SongOut(SongBase):
     id: int
     date_creation: datetime
+    position: Optional[int] = None
 
     class Config:
         from_attributes = True
@@ -162,6 +163,7 @@ class SectionOut(BaseModel):
     chords: Optional[str]
     time_signature: Optional[str]
     bpm: Optional[int]
+    position: Optional[int] = None
     # Omitimos id_song por redundancia en el arbol
 
     class Config:
@@ -189,6 +191,7 @@ class SongDetailOut(BaseModel):
     description: Optional[str]
     status: str
     id_album: int
+    position: Optional[int] = None
     sections: List[SectionOut] = []
     recordings: List[RecordingOut] = []
 
@@ -248,3 +251,6 @@ class ConceptIdeaOut(ConceptIdeaBase):
 
     class Config:
         from_attributes = True
+
+class ReorderPayload(BaseModel):
+    ordered_ids: List[int]

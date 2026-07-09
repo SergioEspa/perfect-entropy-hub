@@ -97,7 +97,8 @@ class Song(AuditMixin, Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
     description = Column(Text) 
-    status = Column(String, default="Idea") 
+    status = Column(String, default="Idea")
+    position = Column(Integer, nullable=True)
     
     id_album = Column(Integer, ForeignKey("albums.id"), nullable=True)
     
@@ -115,6 +116,7 @@ class Section(AuditMixin, Base):
     time_signature = Column(String)
     key = Column(String)
     bpm = Column(Integer)
+    position = Column(Integer, nullable=True)
     
     id_song = Column(Integer, ForeignKey("songs.id"), nullable=False)
     

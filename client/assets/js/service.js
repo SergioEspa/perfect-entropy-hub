@@ -374,3 +374,23 @@ export async function getGlobalConcepts() {
     if (!response.ok) throw new Error("Error obteniendo conceptos de la banda");
     return await response.json();
 }
+
+export async function reorderSongs(orderedIds) {
+    const response = await fetch(`${CONFIG.API_URL}/api/songs/reorder`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ ordered_ids: orderedIds })
+    });
+    if (!response.ok) throw new Error("Error reordenando canciones");
+    return await response.json();
+}
+
+export async function reorderSections(orderedIds) {
+    const response = await fetch(`${CONFIG.API_URL}/api/sections/reorder`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ ordered_ids: orderedIds })
+    });
+    if (!response.ok) throw new Error("Error reordenando secciones");
+    return await response.json();
+}

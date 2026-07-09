@@ -14,7 +14,9 @@ import {
     updateSection, 
     updateSong,
     uploadRecordingFile,
-    createRecording
+    createRecording,
+    reorderSections,
+    reorderSongs
 } from "./service.js";
 
 export const initializeMusic = async () => {
@@ -112,21 +114,31 @@ export const initializeMusic = async () => {
     const renderSongs = () => {
         if (!state.currentAlbumId) return;
         
-        DOM.songList.innerHTML = state.songs.length === 0 
-            ? '<div class="text-center text-secondary mt-3 small">No hay canciones todavía</div>'
-            : state.songs.map(s => `
-                <div class="card bg-dark border-secondary mb-2 song-item cursor-pointer ${s.id === state.currentSongId ? 'border-light' : ''}" data-id="${s.id}">
-                    <div class="card-body p-2 d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="fw-bold text-light">${s.title}</div>
-                            <span class="badge bg-secondary" style="font-size: 10px;">${s.status}</span>
-                        </div>
-                        <button class="btn btn-sm btn-link text-info p-0 edit-song-trigger" title="Editar Configuración">
-                            <i class="bi bi-gear-fill"></i>
-                        </button>
+        if (state.songs.length === 0) {
+            DOM.songList.innerHTML = '<div class="text-center text-secondary mt-3 small">No hay canciones todavía</div>';
+            return;
+        }
+
+        DOM.songList.innerHTML = state.songs.map(s => `
+            <div class="card bg-dark border-secondary mb-2 song-item ${s.id === state.currentSongId ? 'border-light' : ''}" 
+                data-id="${s.id}" 
+                draggable="true">
+                <div class="card-body p-2 d-flex align-items-center gap-2">
+                    <i class="bi bi-grip-vertical text-secondary drag-handle" 
+                    style="cursor: grab; font-size: 1.1rem; flex-shrink: 0;"
+                    title="Arrastra para reordenar"></i>
+                    <div class="flex-grow-1 select-song-zone" style="cursor: pointer; min-width: 0;">
+                        <div class="fw-bold text-light text-truncate">${s.title}</div>
+                        <span class="badge bg-secondary" style="font-size: 10px;">${s.status}</span>
                     </div>
+                    <button class="btn btn-sm btn-link text-info p-0 edit-song-trigger flex-shrink-0" title="Editar">
+                        <i class="bi bi-gear-fill"></i>
+                    </button>
                 </div>
-            `).join('');
+            </div>
+        `).join('');
+
+        initSongDragDrop();
     };
 
     const renderSongDetails = () => {
@@ -141,14 +153,17 @@ export const initializeMusic = async () => {
             </div>
         `;
         
-        // 2. Renderizador de Secciones (Ahora expone Key, Time Signature y estados vacíos)
         const sectionsHTML = (song.sections && song.sections.length > 0) 
-            ? song.sections.map((sec) => `
-                <div class="accordion-item bg-transparent border-secondary mb-2 rounded">
+            ? `<div id="sections-drag-container">` + song.sections.map((sec) => `
+                <div class="accordion-item bg-transparent border-secondary mb-2 rounded section-drag-item" 
+                    data-id="${sec.id}"
+                    draggable="true">
                     <h2 class="accordion-header d-flex align-items-center bg-dark rounded">
+                        <i class="bi bi-grip-vertical text-secondary section-drag-handle px-2" 
+                        style="cursor: grab; font-size: 1.1rem; flex-shrink: 0;"
+                        title="Arrastra para reordenar"></i>
                         <button class="accordion-button collapsed bg-transparent text-light shadow-none p-3" type="button" data-bs-toggle="collapse" data-bs-target="#sec-${sec.id}">
                             <span class="badge bg-dark border border-secondary me-3" style="min-width: 80px;">${sec.type}</span>
-                            
                             <div class="d-flex gap-2 ms-auto me-2 small">
                                 ${sec.key ? `<span class="badge bg-dark border border-secondary text-secondary" title="Tonalidad"><i class="bi bi-music-note me-1"></i>${sec.key}</span>` : ''}
                                 ${sec.time_signature ? `<span class="badge bg-dark border border-secondary text-secondary" title="Compás"><i class="bi bi-clock me-1"></i>${sec.time_signature}</span>` : ''}
@@ -161,13 +176,11 @@ export const initializeMusic = async () => {
                     </h2>
                     <div id="sec-${sec.id}" class="accordion-collapse collapse">
                         <div class="accordion-body text-light small border-top border-secondary bg-dark bg-opacity-25 rounded-bottom">
-                            
                             ${sec.chords ? `
                                 <div class="mb-3">
                                     <div class="text-info mb-1 fw-bold" style="font-size: 11px; text-transform: uppercase;"><i class="bi bi-music-note-list me-1"></i>Acordes</div>
                                     <div class="p-2 bg-dark rounded font-monospace border border-secondary border-opacity-50 text-warning fs-6 tracking-wide">${sec.chords}</div>
                                 </div>` : ''}
-                            
                             ${sec.lyrics ? `
                                 <div>
                                     <div class="text-info mb-1 fw-bold" style="font-size: 11px; text-transform: uppercase;"><i class="bi bi-mic me-1"></i>Letra</div>
@@ -175,12 +188,11 @@ export const initializeMusic = async () => {
                                         <pre class="text-light mb-0" style="white-space: pre-wrap; font-family: inherit; line-height: 1.5;">${sec.lyrics}</pre>
                                     </div>
                                 </div>` : ''}
-                                
                             ${!sec.chords && !sec.lyrics ? `<div class="text-secondary text-center fst-italic py-2">Sección sin acordes ni letra</div>` : ''}
                         </div>
                     </div>
                 </div>
-            `).join('') 
+            `).join('') + `</div>`
             : '<div class="text-center text-secondary my-4 small fst-italic">No hay secciones definidas en la estructura.</div>';
 
         // 3. Renderizador de Grabaciones Multiformato
@@ -304,6 +316,7 @@ export const initializeMusic = async () => {
         `;
         DOM.btnAddRecording = document.getElementById('btn-add-recording');
         DOM.btnAddRecording.addEventListener('click', openRecordingModal);
+        initSectionDragDrop();
     };
 
     // --- 5. LÓGICA DE MODALES ---
@@ -375,6 +388,121 @@ export const initializeMusic = async () => {
         sectionModal.show();
     };
 
+    // --- 5b. DRAG & DROP ---
+
+    const initSongDragDrop = () => {
+        const items = DOM.songList.querySelectorAll('.song-item');
+        let dragSrc = null;
+
+        items.forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                dragSrc = item;
+                e.dataTransfer.effectAllowed = 'move';
+                setTimeout(() => item.classList.add('opacity-50'), 0);
+            });
+
+            item.addEventListener('dragend', () => {
+                item.classList.remove('opacity-50');
+                DOM.songList.querySelectorAll('.song-item').forEach(i => {
+                    i.classList.remove('border-top', 'border-info', 'border-2');
+                });
+            });
+
+            item.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                if (item === dragSrc) return;
+                DOM.songList.querySelectorAll('.song-item').forEach(i => {
+                    i.classList.remove('border-top', 'border-info', 'border-2');
+                });
+                item.classList.add('border-top', 'border-info', 'border-2');
+            });
+
+            item.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                if (!dragSrc || dragSrc === item) return;
+
+                const allItems = [...DOM.songList.querySelectorAll('.song-item')];
+                const srcIdx = allItems.indexOf(dragSrc);
+                const dstIdx = allItems.indexOf(item);
+
+                // Reordenar state.songs optimistamente
+                const moved = state.songs.splice(srcIdx, 1)[0];
+                state.songs.splice(dstIdx, 0, moved);
+                renderSongs();
+
+                // Persistir en backend
+                try {
+                    await reorderSongs(state.songs.map(s => s.id));
+                } catch (err) {
+                    console.error("Error al guardar el orden de canciones:", err);
+                }
+            });
+        });
+    };
+
+    const initSectionDragDrop = () => {
+        const container = document.getElementById('sections-drag-container');
+        if (!container) return;
+
+        const items = container.querySelectorAll('.section-drag-item');
+        let dragSrc = null;
+
+        items.forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                // Solo iniciar drag si viene del handle
+                if (!e.target.closest('.section-drag-handle')) {
+                    e.preventDefault();
+                    return;
+                }
+                dragSrc = item;
+                e.dataTransfer.effectAllowed = 'move';
+                setTimeout(() => item.classList.add('opacity-50'), 0);
+            });
+
+            item.addEventListener('dragend', () => {
+                item.classList.remove('opacity-50');
+                container.querySelectorAll('.section-drag-item').forEach(i => {
+                    i.classList.remove('border-top', 'border-warning', 'border-2');
+                });
+            });
+
+            item.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                if (item === dragSrc) return;
+                container.querySelectorAll('.section-drag-item').forEach(i => {
+                    i.classList.remove('border-top', 'border-warning', 'border-2');
+                });
+                item.classList.add('border-top', 'border-warning', 'border-2');
+            });
+
+            item.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                if (!dragSrc || dragSrc === item) return;
+
+                const allItems = [...container.querySelectorAll('.section-drag-item')];
+                const srcIdx = allItems.indexOf(dragSrc);
+                const dstIdx = allItems.indexOf(item);
+
+                // Reordenar state local de secciones optimistamente
+                const song = state.songs.find(s => s.id === state.currentSongId);
+                if (!song) return;
+
+                const moved = song.sections.splice(srcIdx, 1)[0];
+                song.sections.splice(dstIdx, 0, moved);
+                renderSongDetails();
+
+                // Persistir en backend
+                try {
+                    await reorderSections(song.sections.map(s => s.id));
+                } catch (err) {
+                    console.error("Error al guardar el orden de secciones:", err);
+                }
+            });
+        });
+    };
+
     // --- 6. DELEGACIÓN DE EVENTOS ---
     
     document.getElementById('btn-new-album').addEventListener('click', () => {
@@ -414,6 +542,9 @@ export const initializeMusic = async () => {
         const card = e.target.closest('.song-item');
         if (!card) return;
 
+        // El handle de drag no debe disparar ninguna acción de click
+        if (e.target.closest('.drag-handle')) return;
+
         const id = parseInt(card.dataset.id);
 
         if (e.target.closest('.edit-song-trigger')) {
@@ -422,8 +553,10 @@ export const initializeMusic = async () => {
             return;
         }
 
-        state.currentSongId = id;
-        await refreshSectionsForCurrentSong();
+        if (e.target.closest('.select-song-zone')) {
+            state.currentSongId = id;
+            await refreshSectionsForCurrentSong();
+        }
     });
 
     const loadAlbums = async () => {

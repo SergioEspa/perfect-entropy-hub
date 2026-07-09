@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
 from sqlalchemy.future import select
-from sqlalchemy import update
+from sqlalchemy import update, func
 from sqlalchemy.orm import selectinload
 from .dependencies import get_current_member
 from .database import engine, Base, get_db
@@ -82,6 +82,35 @@ async def login(credentials: schemas.LoginRequest, db: AsyncSession = Depends(ge
     
     return {"access_token": token, "token_type": "bearer", "member_name": user.name}
 
+@app.patch("/api/songs/reorder")
+async def reorder_songs(
+    payload: schemas.ReorderPayload,
+    current_member_id: int = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db)
+):
+    for position, song_id in enumerate(payload.ordered_ids, start=1):
+        await db.execute(
+            update(models.Song)
+            .where(models.Song.id == song_id)
+            .values(position=position)
+        )
+    await db.commit()
+    return {"status": "success"}
+
+@app.patch("/api/sections/reorder")
+async def reorder_sections(
+    payload: schemas.ReorderPayload,
+    current_member_id: int = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db)
+):
+    for position, section_id in enumerate(payload.ordered_ids, start=1):
+        await db.execute(
+            update(models.Section)
+            .where(models.Section.id == section_id)
+            .values(position=position)
+        )
+    await db.commit()
+    return {"status": "success"}
 
 def get_next_monthly_same_weekday(sourcedate):
     target_weekday = sourcedate.weekday()
@@ -351,19 +380,17 @@ async def get_album_songs(
     current_member_id: int = Depends(get_current_member), 
     db: AsyncSession = Depends(get_db)
 ):
-    # 🚨 MAGIA: Una sola consulta SQL masiva, trayendo el árbol completo
     query = (
         select(models.Song)
         .where(models.Song.id_album == album_id, models.Song.flag_disabled == False)
+        .order_by(models.Song.position.asc().nulls_last(), models.Song.id.asc())
         .options(
             selectinload(models.Song.sections),
             selectinload(models.Song.recordings)
         )
     )
     result = await db.execute(query)
-    songs = result.scalars().all()
-    
-    return songs
+    return result.scalars().all()
 
 @app.post("/api/albums/create", response_model=schemas.AlbumOut)
 async def create_album(
@@ -432,7 +459,16 @@ async def create_song(
     current_member_id: int = Depends(get_current_member),
     db: AsyncSession = Depends(get_db)
 ):
-    new_song = models.Song(**song_data.model_dump())
+    # Calcular la siguiente posición dentro del álbum
+    max_pos_result = await db.execute(
+        select(func.max(models.Song.position)).where(
+            models.Song.id_album == song_data.id_album,
+            models.Song.flag_disabled == False
+        )
+    )
+    max_pos = max_pos_result.scalar() or 0
+    
+    new_song = models.Song(**song_data.model_dump(), position=max_pos + 1)
     await new_song.create(session=db, creator_id=current_member_id)
     return new_song
 
@@ -485,7 +521,15 @@ async def create_section(
     if not song:
         raise HTTPException(status_code=404, detail="Canción no encontrada")
 
-    new_section = models.Section(**section_data.model_dump())
+    max_pos_result = await db.execute(
+        select(func.max(models.Section.position)).where(
+            models.Section.id_song == section_data.id_song,
+            models.Section.flag_disabled == False
+        )
+    )
+    max_pos = max_pos_result.scalar() or 0
+
+    new_section = models.Section(**section_data.model_dump(), position=max_pos + 1)
     await new_section.create(session=db, creator_id=current_member_id)
     return new_section
 
@@ -534,10 +578,12 @@ async def get_sections_for_song(
         raise HTTPException(status_code=404, detail="Canción no encontrada")
 
     sections_result = await db.execute(
-        select(models.Section).where(
+        select(models.Section)
+        .where(
             models.Section.id_song == song_id,
             models.Section.flag_disabled == False
         )
+        .order_by(models.Section.position.asc().nulls_last(), models.Section.id.asc())
     )
     return sections_result.scalars().all()
 
