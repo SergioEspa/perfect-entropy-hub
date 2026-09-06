@@ -21,4 +21,4 @@ env/
 
 # Archivos multimedia de la aplicación
 uploads/
-perfect-entropy-api/uploads/
+perfect-entropy-api/uploads/.vscode/
