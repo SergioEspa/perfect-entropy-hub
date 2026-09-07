@@ -20,6 +20,7 @@ import {
 } from "./service.js";
 
 export const initializeMusic = async () => {
+    console.log("LIMPIEZA EJECUTADA");
     ['modalAlbum', 'confirmDeleteAlbum', 'modalSong', 'confirmDeleteSong',
      'modalSection', 'confirmDeleteSection', 'modalRecording'].forEach(id => {
         document.querySelectorAll(`body > #${id}`).forEach(el => {
