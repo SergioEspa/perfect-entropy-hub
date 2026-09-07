@@ -23,7 +23,11 @@ function checkAuthAndLoad() {
     }
 }
 
+let isLoadingPage = false;
+
 async function loadPage(pageName, title) {
+    if (isLoadingPage) return;
+    isLoadingPage = true;
     const contentArea = document.getElementById('content');
     
     try {
@@ -72,6 +76,8 @@ async function loadPage(pageName, title) {
                 </div>
             </div>
         `;
+    } finally {
+        isLoadingPage = false;
     }
 }
 
