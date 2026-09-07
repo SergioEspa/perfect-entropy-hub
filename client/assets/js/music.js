@@ -20,6 +20,15 @@ import {
 } from "./service.js";
 
 export const initializeMusic = async () => {
+    ['modalAlbum', 'confirmDeleteAlbum', 'modalSong', 'confirmDeleteSong',
+     'modalSection', 'confirmDeleteSection', 'modalRecording'].forEach(id => {
+        document.querySelectorAll(`body > #${id}`).forEach(el => {
+            const instance = bootstrap.Modal.getInstance(el);
+            if (instance) instance.dispose();
+            el.remove();
+        });
+    });
+    
     // --- 1. ESTADO GLOBAL ---
     const state = {
         albums: [],
