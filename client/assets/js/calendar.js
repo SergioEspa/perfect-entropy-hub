@@ -601,7 +601,14 @@ export const initializeCalendar = () => {
         const periodicity = clickedEvent ? clickedEvent.extendedProps.periodicity : "SINGLE";
         console.log("PERIODICITY DETECTED:", periodicity);
         deleteAllButton.classList.toggle('d-none', periodicity === "SINGLE");
+        draftModal.hide();
         confirmDeleteModal.show();
+    });
+
+    document.getElementById('confirmDelete').addEventListener('hidden.bs.modal', () => {
+        if (clickedEvent && calendar.getEventById(clickedEvent.id)) {
+            draftModal.show();
+        }
     });
 
     document.getElementById('btn-confirm-delete').addEventListener('click', async () => {
