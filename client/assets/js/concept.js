@@ -1,7 +1,14 @@
 import { getAlbums, getAlbumSongsDetailed, getConceptsByAlbum, getConceptsBySong, getGlobalConcepts, createConcept, updateConcept, deleteConcept } from "./service.js";
 
 export const initializeConcept = async () => {
-    
+    ['modalConcept', 'confirmDeleteConcept'].forEach(id => {
+        document.querySelectorAll(`body > #${id}`).forEach(el => {
+            const instance = bootstrap.Modal.getInstance(el);
+            if (instance) instance.dispose();
+            el.remove();
+        });
+    });
+
     const state = {
         albums: [],
         albumCache: {}, 

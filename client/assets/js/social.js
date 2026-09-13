@@ -1,7 +1,14 @@
 import { getAlbums, getAlbumSongsDetailed, getPostsByAlbum, getPostsBySong, getGlobalPosts, createPost, updatePost, deletePost } from "./service.js";
 
 export const initializeSocial = async () => {
-    
+    ['modalPost', 'confirmDeletePost'].forEach(id => {
+        document.querySelectorAll(`body > #${id}`).forEach(el => {
+            const instance = bootstrap.Modal.getInstance(el);
+            if (instance) instance.dispose();
+            el.remove();
+        });
+    });
+
     // --- 1. ESTADO GLOBAL ---
     const state = {
         albums: [],

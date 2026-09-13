@@ -49,6 +49,14 @@ const getMemberName = (id) => {
 };
 
 export const initializeCalendar = () => {
+    ['modalDraftEvent', 'confirmDelete'].forEach(id => {
+        document.querySelectorAll(`body > #${id}`).forEach(el => {
+            const instance = bootstrap.Modal.getInstance(el);
+            if (instance) instance.dispose();
+            el.remove();
+        });
+    });
+
     const calendarEl = document.getElementById('calendar-root');
     if (!calendarEl) return;
     
