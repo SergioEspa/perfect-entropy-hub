@@ -295,7 +295,7 @@ export const initializeCalendar = () => {
                 calendar.unselect();
                 
                 // 4. Abrimos el modal para customizar
-                openEventModal(calendar.getEventById('draft-event'));
+                openEventModal(calendar.getEventById('draft-event'), false);
 
                 clickedEvent = null;
             }
@@ -321,7 +321,7 @@ export const initializeCalendar = () => {
             }
 
             clickedEvent = info.event;
-            openEventModal(clickedEvent);
+            openEventModal(clickedEvent, true);
         },
 
         eventDrop: function(info) {
@@ -413,7 +413,7 @@ export const initializeCalendar = () => {
         return dateObj.toTimeString().substring(0, 5);
     };
 
-    const openEventModal = (eventObj) => {
+    const openEventModal = (eventObj, showDeleteButton) => {
         document.getElementById('draft-title').value = eventObj.title === 'Nueva Propuesta' ? '' : eventObj.title;
         document.getElementById('draft-type').value = eventObj.extendedProps.type || 'ENSAYO';
         document.getElementById('draft-desc').value = eventObj.extendedProps.description || '';
@@ -426,6 +426,12 @@ export const initializeCalendar = () => {
         const isSeries = eventObj.extendedProps.periodicity && eventObj.extendedProps.periodicity !== "SINGLE";
         const exists = eventObj.id !== 'draft-event';
         document.getElementById('btn-save-draft-all').style.display = (isSeries && exists) ? 'block' : 'none';
+
+        if (showDeleteButton) {
+            document.getElementById('btn-delete-draft').style.display = 'block';
+        } else {
+            document.getElementById('btn-delete-draft').style.display = 'none';
+        }
 
         draftModal.show();
 
