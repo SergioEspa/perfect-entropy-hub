@@ -12,6 +12,10 @@ services:
       - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   backend:
     image: python:3.11-slim
@@ -19,7 +23,6 @@ services:
     command: sh -c "pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     working_dir: /app
     environment:
-      # Inyectamos las variables directamente en la cadena de conexión
       - DATABASE_URL=postgresql+asyncpg://${DB_USER}:${DB_PASSWORD}@db:5432/perfect_entropy_prod
       - BAND_PASSWORD=${BAND_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
@@ -30,6 +33,10 @@ services:
       - ./uploads:/app/uploads
     depends_on:
       - db
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   caddy:
     image: caddy:2-alpine
@@ -44,6 +51,10 @@ services:
       - caddy_config:/config
     depends_on:
       - backend
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
 volumes:
   pgdata:
