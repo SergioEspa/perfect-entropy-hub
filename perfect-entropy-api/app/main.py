@@ -23,8 +23,7 @@ from fastapi import UploadFile, File, Form
 from fastapi.staticfiles import StaticFiles
 
 GLOBAL_PASS = os.getenv("BAND_PASSWORD")
-# Le ponemos un fallback por si tu archivo .env no tiene la variable escrita exactamente igual
-JWT_SECRET = os.getenv("JWT_SECRET", "super_secreto_desarrollo_perfect_entropy") 
+JWT_SECRET = os.getenv("JWT_SECRET") 
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_DAYS = 7
 
@@ -346,7 +345,6 @@ async def update_all_events(
     if not db_event:
         raise HTTPException(status_code=404)
         
-    # Misma heurística de la ventana de 5 segundos que usaste para el borrado
     tolerance = timedelta(seconds=5)
     periodic_events = await db.execute(
         select(models.Event).where(

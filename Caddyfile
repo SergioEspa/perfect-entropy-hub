@@ -1,4 +1,4 @@
-perfectentropy.duckdns.org {
+:80 {
     root * /srv
     file_server
     header Cache-Control "no-cache, must-revalidate"
